@@ -1,9 +1,16 @@
+[![npm version](https://badge.fury.io/js/directus-extension-computed-interface.svg)](https://badge.fury.io/js/directus-extension-computed-interface)
+
 # Introduction
 A [Directus](https://github.com/directus/directus) extension for automatically calculating the value of a field based on other fields of the same item, on the client side.
 
 - **Support templating, arithmetic operations**. Concat strings, sum, subtract, multiply, modulo, convert to slug, currency, etc.
 - **Can be used as an alias field**.
 - **Calculation is performed on the client side**, so it would not work if the item is created/updated via direct API calls or hooks.
+
+# Installation
+```
+npm i directus-extension-computed-interface
+```
 
 # Syntax
 ## Examples
