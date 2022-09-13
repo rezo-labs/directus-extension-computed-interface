@@ -40,7 +40,11 @@ export default defineComponent({
 		if (!props.displayOnly && values) {
 			watch(values, (val, oldVal) => {
 				if (val[props.field] !== oldVal[props.field]) return;
-				emit('input', compute());
+
+				const newValue = compute();
+				if (newValue !== props.value) {
+					emit('input', newValue);
+				}
 			});
 		}
 
