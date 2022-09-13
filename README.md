@@ -49,7 +49,7 @@ Complex calculation:
 {{ SUM(MULTIPLY(2, x), b) }}
 ```
 
-## Availables operators
+## Available operators
 
 Operator | Description
 --- | ---
@@ -64,7 +64,7 @@ Operator | Description
 `FLOAT(a)` | convert to float
 `STRING(a)` | convert to string
 `SLUG(a)` | transform a string to a slug (e.g. "This is a title" &#8594; "this-is-a-title")
-`CURRENCY(a)` | format number a to currency (e.g. "3000" &#8594; "3,000")
+`CURRENCY(a)` | format number a to currency (e.g. 3000 &#8594; "3,000")
 
 # Limitation
 - Cannot parse literal strings (`{{ 's' }}`).
