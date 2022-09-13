@@ -1,4 +1,5 @@
 node_modules/
 src/
+screenshots/
 .env
 tsconfig.json
