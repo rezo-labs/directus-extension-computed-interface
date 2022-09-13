@@ -4,7 +4,7 @@
 </template>
 
 <script lang="ts">
-import { computed, ComputedRef, defineComponent, inject, watch } from 'vue';
+import { ComputedRef, defineComponent, inject, ref, watch } from 'vue';
 import { parseExpression } from './operations';
 
 export default defineComponent({
@@ -30,20 +30,23 @@ export default defineComponent({
 	setup(props, { emit }) {
 		const values = inject<ComputedRef<Record<string, any>>>('values');
 
-		const computedValue = computed(() => {
-			if (values) {
-				return compute();
+		const computedValue = ref('');
+
+		if (values) {
+			if (props.displayOnly) {
+				computedValue.value = compute();
 			}
-			return '';
-		});
 
-		if (!props.displayOnly && values) {
 			watch(values, (val, oldVal) => {
-				if (val[props.field] !== oldVal[props.field]) return;
-
-				const newValue = compute();
-				if (newValue !== props.value) {
-					emit('input', newValue);
+				if (shouldUpdate(val, oldVal)) {
+					if (props.displayOnly) {
+						computedValue.value = compute();
+					} else {
+						const newValue = compute();
+						if (newValue !== props.value) {
+							emit('input', newValue);
+						}
+					}
 				}
 			});
 		}
@@ -51,6 +54,21 @@ export default defineComponent({
 		return {
 			computedValue,
 		};
+
+		/** Simple check which fields are used */
+		function shouldUpdate(val: Record<string, any>, oldVal: Record<string, any>) {
+			for (const key of Object.keys(val)) {
+				if (key !== props.field && checkFieldInTemplate(key) && val[key] !== oldVal[key]) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function checkFieldInTemplate(field: string) {
+			const matches = props.template.match(/{{.*?}}/g)
+			return (matches || []).some((m) => m.includes(field));
+		}
 
 		function compute() {
 			return props.template.replace(/{{.*?}}/g, (match) => {
