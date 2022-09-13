@@ -41,7 +41,7 @@ Convert string to slug:
 
 Text interpolation:
 ```
-{{ SLUG(title) }}-{{ id }}
+/{{ SLUG(title) }}-{{ id }}
 ```
 
 Complex calculation:
@@ -53,19 +53,19 @@ Complex calculation:
 
 Operator | Description
 --- | ---
-SUM(a, b) | sum
-SUBTRACT(a, b) | subtract
-MULTIPLY(a, b) | multiply
-DIVIDE(a, b) | divide
-REMAINDER(a, b) | remainder
-ROUND(a, n) | round number `a` to `n` number of decimals
-CONCAT(a, b) | concat 2 strings
-INT(a) | convert to integer
-FLOAT(a) | convert to float
-STRING(a) | convert to string
-SLUG(a) | transform a string to a slug
-CURRENCY(a) | format number a to currency
+`SUM(a, b)` | a + b
+`SUBTRACT(a, b)` | a - b
+`MULTIPLY(a, b)` | a * b
+`DIVIDE(a, b)` | a / b
+`REMAINDER(a, b)` | a % b
+`ROUND(a, n)` | round number `a` to `n` number of decimals, similar to `toFixed`
+`CONCAT(a, b)` | concat 2 strings
+`INT(a)` | convert to integer
+`FLOAT(a)` | convert to float
+`STRING(a)` | convert to string
+`SLUG(a)` | transform a string to a slug (e.g. "This is a title" &#8594; "this-is-a-title")
+`CURRENCY(a)` | format number a to currency (e.g. "3000" &#8594; "3,000")
 
 # Limitation
-- Cannot parse literal strings.
-- Cannot use relational fields, such as `{{ user.name }}`
+- Cannot parse literal strings (`{{ 's' }}`).
+- Cannot use relational fields (`{{ user.name }}`).
