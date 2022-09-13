@@ -6,11 +6,21 @@ A [Directus](https://github.com/directus/directus) extension for automatically c
 - **Support templating, arithmetic operations**. Concat strings, sum, subtract, multiply, modulo, convert to slug, currency, etc.
 - **Can be used as an alias field**.
 - **Calculation is performed on the client side**, so it would not work if the item is created/updated via direct API calls or hooks.
+- **Lightweight**. No third-party libraries.
+
+![](./screenshots/screenshot1.jpeg)
+![](./screenshots/screenshot2.jpeg)
 
 # Installation
 ```
 npm i directus-extension-computed-interface
 ```
+
+# Get Started
+1. Go to **Settings**, create a new field with type string or number.
+2. In the **Interface** panel, choose **Computed** interface. There are 2 options:
+    1. **Template**: Similar to M2M interface, determine how the field is calculated. Learn more about syntax in the next section.
+    2. **Display Only**: If the field is an alias and you don't want to save to the database, enable this.
 
 # Syntax
 ## Examples

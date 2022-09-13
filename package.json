@@ -1,6 +1,16 @@
 {
 	"name": "directus-extension-computed-interface",
 	"version": "1.0.0",
+	"description": "Perform computed value based on other fields",
+	"author": {
+		"email": "duydvu98@gmail.com",
+		"name": "Vũ Đức Duy"
+	},
+	"license": "gpl-3.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rezo-labs/directus-extension-computed-interface.git"
+	},
 	"keywords": [
 		"directus",
 		"directus-extension",
