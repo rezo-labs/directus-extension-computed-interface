@@ -39,6 +39,10 @@ export const useDeepValues = (
 			const fieldName = relation.meta.one_field;
 			const fieldChanges = values.value[fieldName] as IRelationUpdate;
 
+			if (!fieldChanges) {
+				return;
+			}
+
 			let arrayOfIds: (string | number)[] = [];
 			let arrayOfData: unknown[] = [];
 			if (pk !== '+') {
@@ -71,7 +75,11 @@ export const useDeepValues = (
 					params: { filter: { id: { _in: arrayOfIds } } },
 				});
 
-				arrayOfData = arrayOfData.concat(data);
+				// merging item updates
+				arrayOfData = data.map((item: any) => ({
+					...item,
+					...fieldChanges.update?.find(({ id }) => item.id === id),
+				}));
 			}
 
 			finalValues.value = { ...values.value, animaiszinhos: arrayOfData };
