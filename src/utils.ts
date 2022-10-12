@@ -56,10 +56,6 @@ export const useDeepValues = (
 				arrayOfIds = arrayOfIds.concat(data.animaiszinhos);
 			}
 
-			if (fieldChanges.create) {
-				arrayOfData = arrayOfData.concat(fieldChanges.create);
-			}
-
 			if (fieldChanges.update) {
 				arrayOfIds = arrayOfIds.concat(fieldChanges.update.map(({ id }) => id));
 			}
@@ -80,6 +76,11 @@ export const useDeepValues = (
 					...item,
 					...fieldChanges.update?.find(({ id }) => item.id === id),
 				}));
+			}
+
+			// must concat after request, created items doenst have ids
+			if (fieldChanges.create) {
+				arrayOfData = arrayOfData.concat(fieldChanges.create);
 			}
 
 			finalValues.value = { ...values.value, animaiszinhos: arrayOfData };
