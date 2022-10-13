@@ -29,18 +29,20 @@ export const useDeepValues = (
 	const api = useApi();
 	const finalValues = ref<Record<string, any>>(values.value);
 	watch(values, async () => {
-		Object.keys(values.value).forEach(async (key) => {
+		const relationalData: Record<string, any> = {};
+
+		for (const key of Object.keys(values.value)) {
 			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
 
 			if (!relation || !checkFieldInTemplate(template, key)) {
-				return;
+				continue;
 			}
 
 			const fieldName = relation.meta.one_field;
 			const fieldChanges = values.value[fieldName] as IRelationUpdate;
 
 			if (!fieldChanges) {
-				return;
+				continue;
 			}
 
 			let arrayOfIds: (string | number)[] = [];
@@ -83,8 +85,10 @@ export const useDeepValues = (
 				arrayOfData = arrayOfData.concat(fieldChanges.create);
 			}
 
-			finalValues.value = { ...finalValues.value, [key]: arrayOfData };
-		});
+			relationalData[key] = arrayOfData;
+		}
+
+		finalValues.value = { ...values.value, ...relationalData };
 	});
 
 	return finalValues;
