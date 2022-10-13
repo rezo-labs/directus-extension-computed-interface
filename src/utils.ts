@@ -30,7 +30,7 @@ export const useDeepValues = (
 	const finalValues = ref<Record<string, any>>(values.value);
 	watch(values, async () => {
 		Object.keys(values.value).forEach(async (key) => {
-			const relation = relations.value.find((rel) => rel.meta?.one_field?.includes(key));
+			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
 
 			if (!relation || !checkFieldInTemplate(template, key)) {
 				return;
@@ -53,7 +53,7 @@ export const useDeepValues = (
 						fields: [fieldName],
 					},
 				});
-				arrayOfIds = arrayOfIds.concat(data.animaiszinhos);
+				arrayOfIds = arrayOfIds.concat(data[key]);
 			}
 
 			if (fieldChanges.update) {
@@ -83,7 +83,7 @@ export const useDeepValues = (
 				arrayOfData = arrayOfData.concat(fieldChanges.create);
 			}
 
-			finalValues.value = { ...values.value, animaiszinhos: arrayOfData };
+			finalValues.value = { ...values.value, [key]: arrayOfData };
 		});
 	});
 
