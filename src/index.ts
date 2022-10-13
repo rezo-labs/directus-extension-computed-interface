@@ -30,6 +30,6 @@ export default defineInterface({
 				interface: 'boolean',
 				width: 'half',
 			},
-		}
+		},
 	],
 });
