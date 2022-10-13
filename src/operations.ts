@@ -30,9 +30,12 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 					return new Intl.NumberFormat().format(valueA);
 				}
 			} else if (op === 'ASUM') {
-				return (values.value[a] as unknown[]).reduce(
-					(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
-					0
+				// aggregated sum
+				return (
+					(values.value[a] as unknown[])?.reduce(
+						(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
+						0
+					) ?? 0
 				);
 			} else {
 				// binary operators
