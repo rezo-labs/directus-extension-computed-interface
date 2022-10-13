@@ -83,7 +83,7 @@ export const useDeepValues = (
 				arrayOfData = arrayOfData.concat(fieldChanges.create);
 			}
 
-			finalValues.value = { ...values.value, [key]: arrayOfData };
+			finalValues.value = { ...finalValues.value, [key]: arrayOfData };
 		});
 	});
 
