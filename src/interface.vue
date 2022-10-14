@@ -66,7 +66,7 @@ export default defineComponent({
 		}
 
 		function checkFieldInTemplate(field: string) {
-			const matches = props.template.match(/{{.*?}}/g)
+			const matches = props.template.match(/{{.*?}}/g);
 			return (matches || []).some((m) => m.includes(field));
 		}
 

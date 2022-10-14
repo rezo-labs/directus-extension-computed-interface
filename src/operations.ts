@@ -1,4 +1,4 @@
-import { Ref } from "vue";
+import { Ref } from 'vue';
 
 export function parseExpression(exp: string, values: Ref | undefined): any {
 	if (values) {
@@ -86,7 +86,7 @@ function parseOp(exp: string) {
 			op,
 			a: innerExp,
 			b: null,
-		}
+		};
 	}
 	return null;
 }
