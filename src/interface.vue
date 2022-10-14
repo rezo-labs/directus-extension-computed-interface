@@ -6,7 +6,7 @@
 <script lang="ts">
 import { ComputedRef, defineComponent, inject, ref, watch } from 'vue';
 import { parseExpression } from './operations';
-import { checkFieldInTemplate, useDeepValues, useCollectionRelations } from './utils';
+import { useDeepValues, useCollectionRelations } from './utils';
 
 export default defineComponent({
 	props: {
@@ -43,6 +43,7 @@ export default defineComponent({
 			inject<ComputedRef<Record<string, any>>>('values')!,
 			relations,
 			props.collection,
+			props.field,
 			props.primaryKey,
 			props.template
 		);
@@ -52,15 +53,13 @@ export default defineComponent({
 				computedValue.value = compute();
 			}
 
-			watch(values, (val, oldVal) => {
-				if (shouldUpdate(val, oldVal)) {
-					if (props.displayOnly) {
-						computedValue.value = compute();
-					} else {
-						const newValue = compute();
-						if (newValue !== props.value) {
-							emit('input', newValue);
-						}
+			watch(values, () => {
+				if (props.displayOnly) {
+					computedValue.value = compute();
+				} else {
+					const newValue = compute();
+					if (newValue !== props.value) {
+						emit('input', newValue);
 					}
 				}
 			});
@@ -69,16 +68,6 @@ export default defineComponent({
 		return {
 			computedValue,
 		};
-
-		/** Simple check which fields are used */
-		function shouldUpdate(val: Record<string, any>, oldVal: Record<string, any>) {
-			for (const key of Object.keys(val)) {
-				if (key !== props.field && checkFieldInTemplate(props.template, key) && val[key] !== oldVal[key]) {
-					return true;
-				}
-			}
-			return false;
-		}
 
 		function compute() {
 			return props.template.replace(/{{.*?}}/g, (match) => {

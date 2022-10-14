@@ -7,15 +7,20 @@ export function checkFieldInTemplate(template: string, field: string) {
 	return (matches || []).some((m) => m.includes(field));
 }
 
-const checkFieldNeedsUpdate = (field: string, newVal: Record<string, any>, oldVal: Record<string, any>) => {
-	if (oldVal[field] === newVal[field]) {
-		return false;
+/** Simple check which fields are used */
+function shouldUpdate(template: string, computedField: string, val: Record<string, any>, oldVal: Record<string, any>) {
+	for (const key of Object.keys(val)) {
+		if (
+			key !== computedField &&
+			checkFieldInTemplate(template, key) &&
+			val[key] !== oldVal[key] &&
+			JSON.stringify(val[key]) !== JSON.stringify(oldVal[key])
+		) {
+			return true;
+		}
 	}
-	if (JSON.stringify(oldVal[field]) === JSON.stringify(newVal[field])) {
-		return false;
-	}
-	return true;
-};
+	return false;
+}
 
 export const useCollectionRelations = (collection: string): Ref<any[]> => {
 	const { useRelationsStore } = useStores();
@@ -33,18 +38,24 @@ export const useDeepValues = (
 	values: Ref<Record<string, any>>,
 	relations: Ref<any[]>,
 	collection: string,
+	computedField: string,
 	pk: string,
 	template: string
 ) => {
 	const api = useApi();
-	const finalValues = ref<Record<string, any>>(values.value);
-	watch(values, async (val, oldVal) => {
+	const finalValues = ref<Record<string, any>>({});
+	watch(values, async () => {
+		if (!shouldUpdate(template, computedField, values.value, finalValues.value)) {
+			finalValues.value = values.value;
+			return;
+		}
+
 		const relationalData: Record<string, any> = {};
 
 		for (const key of Object.keys(values.value)) {
 			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
 
-			if (!relation || !checkFieldInTemplate(template, key) || !checkFieldNeedsUpdate(key, val, oldVal)) {
+			if (!relation) {
 				continue;
 			}
 
@@ -98,9 +109,7 @@ export const useDeepValues = (
 			relationalData[key] = arrayOfData;
 		}
 
-		if (Object.keys(relationalData).length) {
-			finalValues.value = { ...values.value, ...relationalData };
-		}
+		finalValues.value = { ...values.value, ...relationalData };
 	});
 
 	return finalValues;
