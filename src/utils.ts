@@ -1,4 +1,4 @@
-import { watch, ref } from 'vue';
+import { watch, ref, computed } from 'vue';
 import type { Ref } from 'vue';
 import { useApi, useStores } from '@directus/extensions-sdk';
 import { Relation } from '@directus/shared/types';
@@ -29,10 +29,10 @@ export const useCollectionRelations = (collection: string): Ref<Relation[]> => {
 	return ref(getRelationsForCollection(collection));
 };
 
-interface IRelationUpdate<T = Relation> {
-	create: T[];
-	update: { owner: string; id: number | string }[];
-	delete: (number | string)[];
+interface IRelationUpdate {
+	create: Record<string, any>[];
+	update: Record<string, any>[];
+	delete: (string | number)[];
 }
 
 export const useDeepValues = (
@@ -45,10 +45,12 @@ export const useDeepValues = (
 ) => {
 	const api = useApi();
 	const finalValues = ref<Record<string, any>>({});
+	// Directus store o2m value as reference so when o2m updated, val & oldVal in watch are the same.
+	// This will serialize values so when o2m fields are updated, their changes can be seen.
+	const cloneValues = computed(() => JSON.stringify(values.value));
 
-	watch(values, async () => {
-		if (!shouldUpdate(template, computedField, values.value, finalValues.value)) {
-			finalValues.value = values.value;
+	watch(cloneValues, async (val, oldVal) => {
+		if (!shouldUpdate(template, computedField, JSON.parse(val), JSON.parse(oldVal))) {
 			return;
 		}
 
@@ -111,6 +113,8 @@ export const useDeepValues = (
 		}
 
 		finalValues.value = { ...values.value, ...relationalData };
+	}, {
+		deep: false,
 	});
 
 	return finalValues;
