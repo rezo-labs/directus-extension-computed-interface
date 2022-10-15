@@ -45,6 +45,7 @@ export const useDeepValues = (
 ) => {
 	const api = useApi();
 	const finalValues = ref<Record<string, any>>({});
+
 	watch(values, async () => {
 		if (!shouldUpdate(template, computedField, values.value, finalValues.value)) {
 			finalValues.value = values.value;
@@ -54,7 +55,7 @@ export const useDeepValues = (
 		const relationalData: Record<string, any> = {};
 
 		for (const key of Object.keys(values.value)) {
-			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
+			const relation = relations.value.find((rel) => rel.meta?.one_field === key && rel.related_collection === collection);
 
 			if (!relation || !checkFieldInTemplate(template, key)) {
 				continue;
