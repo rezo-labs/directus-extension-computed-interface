@@ -55,7 +55,7 @@ export const useDeepValues = (
 		for (const key of Object.keys(values.value)) {
 			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
 
-			if (!relation) {
+			if (!relation || !checkFieldInTemplate(template, key)) {
 				continue;
 			}
 
