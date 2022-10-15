@@ -23,7 +23,7 @@ export default defineComponent({
 			default: '',
 		},
 		primaryKey: {
-			type: String,
+			type: [String, Number],
 			default: '',
 		},
 		template: {

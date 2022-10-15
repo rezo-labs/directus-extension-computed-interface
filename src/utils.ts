@@ -1,6 +1,7 @@
-import { watch, ref } from 'vue';
+import { watch, ref, computed } from 'vue';
 import type { Ref } from 'vue';
 import { useApi, useStores } from '@directus/extensions-sdk';
+import { Relation } from '@directus/shared/types';
 
 export function checkFieldInTemplate(template: string, field: string) {
 	const matches = template.match(/{{.*?}}/g);
@@ -22,21 +23,21 @@ function shouldUpdate(template: string, computedField: string, val: Record<strin
 	return false;
 }
 
-export const useCollectionRelations = (collection: string): Ref<any[]> => {
+export const useCollectionRelations = (collection: string): Ref<Relation[]> => {
 	const { useRelationsStore } = useStores();
 	const { getRelationsForCollection } = useRelationsStore();
 	return ref(getRelationsForCollection(collection));
 };
 
-interface IRelationUpdate<T = unknown> {
-	create: T[];
-	update: { owner: string; id: number | string }[];
-	delete: (number | string)[];
+interface IRelationUpdate {
+	create: Record<string, any>[];
+	update: Record<string, any>[];
+	delete: (string | number)[];
 }
 
 export const useDeepValues = (
 	values: Ref<Record<string, any>>,
-	relations: Ref<any[]>,
+	relations: Ref<Relation[]>,
 	collection: string,
 	computedField: string,
 	pk: string,
@@ -44,23 +45,25 @@ export const useDeepValues = (
 ) => {
 	const api = useApi();
 	const finalValues = ref<Record<string, any>>({});
-	watch(values, async () => {
-		if (!shouldUpdate(template, computedField, values.value, finalValues.value)) {
-			finalValues.value = values.value;
+	// Directus store o2m value as reference so when o2m updated, val & oldVal in watch are the same.
+	// This will serialize values so when o2m fields are updated, their changes can be seen.
+	const cloneValues = computed(() => JSON.stringify(values.value));
+
+	watch(cloneValues, async (val, oldVal) => {
+		if (!shouldUpdate(template, computedField, JSON.parse(val), JSON.parse(oldVal))) {
 			return;
 		}
 
 		const relationalData: Record<string, any> = {};
 
 		for (const key of Object.keys(values.value)) {
-			const relation = relations.value.find((rel) => rel.meta?.one_field === key);
+			const relation = relations.value.find((rel) => rel.meta?.one_field === key && rel.related_collection === collection);
 
-			if (!relation) {
+			if (!relation || !checkFieldInTemplate(template, key)) {
 				continue;
 			}
 
-			const fieldName = relation.meta.one_field;
-			const fieldChanges = values.value[fieldName] as IRelationUpdate;
+			const fieldChanges = values.value[key] as IRelationUpdate;
 
 			if (!fieldChanges) {
 				continue;
@@ -73,7 +76,7 @@ export const useDeepValues = (
 					data: { data },
 				} = await api.get(`items/${collection}/${pk}`, {
 					params: {
-						fields: [fieldName],
+						fields: [key],
 					},
 				});
 				arrayOfIds = arrayOfIds.concat(data[key]);
@@ -110,6 +113,8 @@ export const useDeepValues = (
 		}
 
 		finalValues.value = { ...values.value, ...relationalData };
+	}, {
+		deep: false,
 	});
 
 	return finalValues;
