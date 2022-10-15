@@ -6,6 +6,7 @@
 <script lang="ts">
 import { ComputedRef, defineComponent, inject, ref, watch } from 'vue';
 import { parseExpression } from './operations';
+import { useDeepValues, useCollectionRelations } from './utils';
 
 export default defineComponent({
 	props: {
@@ -16,6 +17,14 @@ export default defineComponent({
 		field: {
 			type: String,
 			default: null,
+		},
+		collection: {
+			type: String,
+			default: '',
+		},
+		primaryKey: {
+			type: String,
+			default: '',
 		},
 		template: {
 			type: String,
@@ -28,24 +37,29 @@ export default defineComponent({
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
-		const values = inject<ComputedRef<Record<string, any>>>('values');
-
 		const computedValue = ref('');
+		const relations = useCollectionRelations(props.collection);
+		const values = useDeepValues(
+			inject<ComputedRef<Record<string, any>>>('values')!,
+			relations,
+			props.collection,
+			props.field,
+			props.primaryKey,
+			props.template
+		);
 
 		if (values) {
 			if (props.displayOnly) {
 				computedValue.value = compute();
 			}
 
-			watch(values, (val, oldVal) => {
-				if (shouldUpdate(val, oldVal)) {
-					if (props.displayOnly) {
-						computedValue.value = compute();
-					} else {
-						const newValue = compute();
-						if (newValue !== props.value) {
-							emit('input', newValue);
-						}
+			watch(values, () => {
+				if (props.displayOnly) {
+					computedValue.value = compute();
+				} else {
+					const newValue = compute();
+					if (newValue !== props.value) {
+						emit('input', newValue);
 					}
 				}
 			});
@@ -54,21 +68,6 @@ export default defineComponent({
 		return {
 			computedValue,
 		};
-
-		/** Simple check which fields are used */
-		function shouldUpdate(val: Record<string, any>, oldVal: Record<string, any>) {
-			for (const key of Object.keys(val)) {
-				if (key !== props.field && checkFieldInTemplate(key) && val[key] !== oldVal[key]) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		function checkFieldInTemplate(field: string) {
-			const matches = props.template.match(/{{.*?}}/g);
-			return (matches || []).some((m) => m.includes(field));
-		}
 
 		function compute() {
 			return props.template.replace(/{{.*?}}/g, (match) => {

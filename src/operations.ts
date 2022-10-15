@@ -29,6 +29,14 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 				if (op === 'CURRENCY') {
 					return new Intl.NumberFormat().format(valueA);
 				}
+			} else if (op === 'ASUM') {
+				// aggregated sum
+				return (
+					(values.value[a] as unknown[])?.reduce(
+						(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
+						0
+					) ?? 0
+				);
 			} else {
 				// binary operators
 				const valueB = parseExpression(b, values);
