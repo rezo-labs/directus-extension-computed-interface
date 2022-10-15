@@ -1,6 +1,7 @@
 import { watch, ref } from 'vue';
 import type { Ref } from 'vue';
 import { useApi, useStores } from '@directus/extensions-sdk';
+import { Relation } from '@directus/shared/types';
 
 export function checkFieldInTemplate(template: string, field: string) {
 	const matches = template.match(/{{.*?}}/g);
@@ -22,13 +23,13 @@ function shouldUpdate(template: string, computedField: string, val: Record<strin
 	return false;
 }
 
-export const useCollectionRelations = (collection: string): Ref<any[]> => {
+export const useCollectionRelations = (collection: string): Ref<Relation[]> => {
 	const { useRelationsStore } = useStores();
 	const { getRelationsForCollection } = useRelationsStore();
 	return ref(getRelationsForCollection(collection));
 };
 
-interface IRelationUpdate<T = unknown> {
+interface IRelationUpdate<T = Relation> {
 	create: T[];
 	update: { owner: string; id: number | string }[];
 	delete: (number | string)[];
@@ -36,7 +37,7 @@ interface IRelationUpdate<T = unknown> {
 
 export const useDeepValues = (
 	values: Ref<Record<string, any>>,
-	relations: Ref<any[]>,
+	relations: Ref<Relation[]>,
 	collection: string,
 	computedField: string,
 	pk: string,
@@ -59,8 +60,7 @@ export const useDeepValues = (
 				continue;
 			}
 
-			const fieldName = relation.meta.one_field;
-			const fieldChanges = values.value[fieldName] as IRelationUpdate;
+			const fieldChanges = values.value[key] as IRelationUpdate;
 
 			if (!fieldChanges) {
 				continue;
@@ -73,7 +73,7 @@ export const useDeepValues = (
 					data: { data },
 				} = await api.get(`items/${collection}/${pk}`, {
 					params: {
-						fields: [fieldName],
+						fields: [key],
 					},
 				});
 				arrayOfIds = arrayOfIds.concat(data[key]);
