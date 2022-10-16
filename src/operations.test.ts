@@ -189,6 +189,11 @@ describe('Test parseExpression', () => {
     expect(parseExpression('OR(a, b)', { a: false, b: true })).toBe(true);
     expect(parseExpression('OR(a, b)', { a: false, b: false })).toBe(false);
   });
+
+  test('ASUM op', () => {
+    expect(parseExpression('ASUM(a, b)', { a: [{b: 5}, {b: 10}, {b: 0}, {b: 15}] })).toBe(30);
+    expect(parseExpression('ASUM(a, MULTIPLY(b, c))', { a: [{b: 5, c: 1}, {b: 10, c: 2}, {b: 1000, c: 0}, {b: 15, c: 10}] })).toBe(175);
+  });
 });
 
 describe('Test parseOp', () => {

@@ -89,7 +89,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				// aggregated sum
 				return (
 					(values[a] as unknown[])?.reduce(
-						(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
+						(acc, item) => acc + parseExpression(b, item as typeof values),
 						0
 					) ?? 0
 				);
