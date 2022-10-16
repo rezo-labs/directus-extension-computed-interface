@@ -171,7 +171,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 	return '';
 }
 
-function parseOp(exp: string) {
+export function parseOp(exp: string) {
 	const match = exp.match(/^([A-Z_]+)\((.+)\)$/);
 	if (match) {
 		const op = match[1] as string;
