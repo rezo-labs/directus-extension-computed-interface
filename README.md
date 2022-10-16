@@ -51,20 +51,86 @@ Complex calculation:
 
 ## Available operators
 
+### Type conversion
+
 Operator | Description
 --- | ---
+`INT(a)` | convert to integer
+`FLOAT(a)` | convert to float
+`STRING(a)` | convert to string
+
+### Format
+
+Operator | Description
+--- | ---
+`SLUG(a)` | transform string to slug (e.g. "This is a title" &#8594; "this-is-a-title")
+`CURRENCY(a)` | format number to currency (e.g. 3000 &#8594; "3,000")
+
+### Date
+
+Operator | Description
+--- | ---
+`DATE_ISO(a)` | transform date or date-like object to ISO string
+`DATE_UTC(a)` | transform date or date-like object to UTC string
+
+### Arithmetic
+
+Operator | Description
+--- | ---
+`ABS(a)` | absolute
+`SQRT(a)` | square root
+`SUM(a)` | sum an array of numbers
 `SUM(a, b)` | a + b
+`AVERAGE(a)` | average value of an array of number
 `SUBTRACT(a, b)` | a - b
 `MULTIPLY(a, b)` | a * b
 `DIVIDE(a, b)` | a / b
 `REMAINDER(a, b)` | a % b
 `ROUND(a, n)` | round number `a` to `n` number of decimals, similar to `toFixed`
+`MAX(a, b)` | max value
+`MIN(a, b)` | min value
+`POWER(a, b)` | a^b
+
+### String
+
+Operator | Description
+--- | ---
+`STR_LEN(a)` | length of string
+`LOWER(a)` | to lower case
+`UPPER(a)` | to upper case
+`TRIM(a)` | removes whitespace at the beginning and end of string.
 `CONCAT(a, b)` | concat 2 strings
-`INT(a)` | convert to integer
-`FLOAT(a)` | convert to float
-`STRING(a)` | convert to string
-`SLUG(a)` | transform a string to a slug (e.g. "This is a title" &#8594; "this-is-a-title")
-`CURRENCY(a)` | format number a to currency (e.g. 3000 &#8594; "3,000")
+`LEFT(a, b)` | extract `b` characters from the beginning of the string.
+`RIGHT(a, b)` | extract `b` characters from the end of the string.
+
+### Boolean
+
+Operator | Description
+--- | ---
+`NULL(a)` | check is null
+`NOT_NULL(a)` | check is not null
+`NOT(a)` | logical NOT
+`EQUAL(a, b)` | a = b
+`NOT_EQUAL(a, b)` | a <> b
+`GT(a, b)` | a > b
+`GTE(a, b)` | a >= b
+`LT(a, b)` | a < b
+`LTE(a, b)` | a <= b
+`AND(a, b)` | logical AND
+`OR(a, b)` | logical OR
+
+### Array
+
+Operator | Description
+--- | ---
+`ARRAY_LEN(a)` | length of array
+
+### Relational
+
+Operator | Description
+--- | ---
+`ASUM(a, b)` | Aggregated sum of O2M field. For example: calculate shopping cart total price with `ASUM(products, MULTIPLY(price, quantity))` where `products` is the O2M field in the shopping cart and `price` & `quantity` are 2 fields of `products`.
+
 
 # Limitation
 - Cannot parse literal strings (`{{ 's' }}`).
