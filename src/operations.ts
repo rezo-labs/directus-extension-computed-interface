@@ -1,10 +1,8 @@
-import { Ref } from 'vue';
-
-export function parseExpression(exp: string, values: Ref | undefined): any {
+export function parseExpression(exp: string, values: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
-		if (exp in values.value) {
-			return values.value[exp];
+		if (exp in values) {
+			return values[exp];
 		}
 
 		const opMatch = parseOp(exp);
@@ -90,7 +88,7 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 			} else if (op === 'ASUM') {
 				// aggregated sum
 				return (
-					(values.value[a] as unknown[])?.reduce(
+					(values[a] as unknown[])?.reduce(
 						(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
 						0
 					) ?? 0
@@ -174,7 +172,7 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 }
 
 function parseOp(exp: string) {
-	const match = exp.match(/^([A-Z]+)\((.+)\)$/);
+	const match = exp.match(/^([A-Z_]+)\((.+)\)$/);
 	if (match) {
 		const op = match[1] as string;
 		const innerExp = match[2] as string;
