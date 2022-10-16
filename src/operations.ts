@@ -1,10 +1,8 @@
-import { Ref } from 'vue';
-
-export function parseExpression(exp: string, values: Ref | undefined): any {
+export function parseExpression(exp: string, values: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
-		if (exp in values.value) {
-			return values.value[exp];
+		if (exp in values) {
+			return values[exp];
 		}
 
 		const opMatch = parseOp(exp);
@@ -14,6 +12,7 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 
 			// unary operators
 			if (b === null) {
+				// type conversion
 				if (op === 'INT') {
 					return parseInt(valueA);
 				}
@@ -23,23 +22,82 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 				if (op === 'STRING') {
 					return String(valueA);
 				}
+				// format
 				if (op === 'SLUG') {
 					return toSlug(valueA);
 				}
 				if (op === 'CURRENCY') {
 					return new Intl.NumberFormat().format(valueA);
 				}
+				// date
+				if (op === 'DATE_ISO') {
+					return new Date(valueA).toISOString();
+				}
+				if (op === 'DATE_UTC') {
+					return new Date(valueA).toUTCString();
+				}
+				// arithmetic
+				if (op === 'ABS') {
+					return Math.abs(valueA);
+				}
+				if (op === 'SQRT') {
+					return Math.sqrt(valueA);
+				}
+				if (op === 'SUM') {
+					if (valueA instanceof Array) {
+						return valueA.reduce((partialSum, a) => partialSum + a, 0);
+					}
+					return 0;
+				}
+				if (op === 'AVERAGE') {
+					if (valueA instanceof Array) {
+						return valueA.reduce((partialSum, a) => partialSum + a, 0) / valueA.length;
+					}
+					return 0;
+				}
+				// boolean
+				if (op === 'NULL') {
+					return valueA === null;
+				}
+				if (op === 'NOT_NULL') {
+					return valueA !== null;
+				}
+				if (op === 'NOT') {
+					return !valueA;
+				}
+				// string
+				if (op === 'STR_LEN') {
+					return String(valueA).length;
+				}
+				if (op === 'LOWER') {
+					return String(valueA).toLowerCase();
+				}
+				if (op === 'UPPER') {
+					return String(valueA).toUpperCase();
+				}
+				if (op === 'TRIM') {
+					return String(valueA).trim();
+				}
+				// array
+				if (op === 'ARRAY_LEN') {
+					if (valueA instanceof Array) {
+						return valueA.length;
+					}
+					return 0;
+				}
 			} else if (op === 'ASUM') {
 				// aggregated sum
 				return (
-					(values.value[a] as unknown[])?.reduce(
-						(acc, item) => acc + parseExpression(b, { value: item } as typeof values),
+					(values[a] as unknown[])?.reduce(
+						(acc, item) => acc + parseExpression(b, item as typeof values),
 						0
 					) ?? 0
 				);
 			} else {
 				// binary operators
 				const valueB = parseExpression(b, values);
+
+				// arithmetic
 				if (op === 'SUM') {
 					return valueA + valueB;
 				}
@@ -58,8 +116,49 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 				if (op === 'ROUND') {
 					return (valueA as number).toFixed(valueB);
 				}
+				if (op === 'MAX') {
+					return Math.max(valueA, valueB);
+				}
+				if (op === 'MIN') {
+					return Math.min(valueA, valueB);
+				}
+				if (op === 'POWER') {
+					return Math.pow(valueA, valueB);
+				}
+				// string
 				if (op === 'CONCAT') {
 					return String(valueA) + String(valueB);
+				}
+				if (op === 'LEFT') {
+					return String(valueA).slice(0, Number(valueB));
+				}
+				if (op === 'RIGHT') {
+					return String(valueA).slice(-Number(valueB));
+				}
+				// boolean
+				if (op === 'EQUAL') {
+					return valueA === valueB;
+				}
+				if (op === 'NOT_EQUAL') {
+					return valueA !== valueB;
+				}
+				if (op === 'GT') {
+					return valueA > valueB;
+				}
+				if (op === 'GTE') {
+					return valueA >= valueB;
+				}
+				if (op === 'LT') {
+					return valueA < valueB;
+				}
+				if (op === 'LTE') {
+					return valueA <= valueB;
+				}
+				if (op === 'AND') {
+					return valueA && valueB;
+				}
+				if (op === 'OR') {
+					return valueA || valueB;
 				}
 			}
 		}
@@ -72,8 +171,8 @@ export function parseExpression(exp: string, values: Ref | undefined): any {
 	return '';
 }
 
-function parseOp(exp: string) {
-	const match = exp.match(/^([A-Z]+)\((.+)\)$/);
+export function parseOp(exp: string) {
+	const match = exp.match(/^([A-Z_]+)\((.+)\)$/);
 	if (match) {
 		const op = match[1] as string;
 		const innerExp = match[2] as string;
