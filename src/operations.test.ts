@@ -135,11 +135,11 @@ describe('Test parseExpression', () => {
   });
 
   test('LEFT op', () => {
-    expect(parseExpression('LEFT(a, b)', { a: '123456', b: 3 })).toBe('123');
+    expect(parseExpression('LEFT(a, b)', { a: '123456', b: 2 })).toBe('12');
   });
 
   test('RIGHT op', () => {
-    expect(parseExpression('RIGHT(a, b)', { a: '123456', b: 3 })).toBe('456');
+    expect(parseExpression('RIGHT(a, b)', { a: '123456', b: 2 })).toBe('56');
   });
 
   test('EQUAL op', () => {

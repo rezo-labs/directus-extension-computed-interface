@@ -133,7 +133,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 					return String(valueA).slice(0, Number(valueB));
 				}
 				if (op === 'RIGHT') {
-					return String(valueA).slice(Number(valueB));
+					return String(valueA).slice(-Number(valueB));
 				}
 				// boolean
 				if (op === 'EQUAL') {
