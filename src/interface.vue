@@ -67,10 +67,16 @@ export default defineComponent({
 		};
 
 		function compute() {
-			return props.template.replace(/{{.*?}}/g, (match) => {
+			const computedValue = props.template.replace(/{{.*?}}/g, (match) => {
 				const expression = match.slice(2, -2).trim();
 				return parseExpression(expression, values.value);
 			});
+
+			if (!computedValue) {
+				return null;
+			}
+
+			return computedValue;
 		}
 	},
 });

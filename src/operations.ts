@@ -8,7 +8,21 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 		const opMatch = parseOp(exp);
 		if (opMatch) {
 			const { op, a, b } = opMatch;
+
+			if (op === 'ASUM') {
+				// aggregated sum
+				return (
+					(values[a] as unknown[])?.reduce(
+						(acc, item) => acc + parseExpression(b!, item as typeof values),
+						0
+					) ?? 0
+				);
+			}
+
 			const valueA = parseExpression(a, values);
+			if (!valueA) {
+				return '';
+			}
 
 			// unary operators
 			if (b === null) {
@@ -85,14 +99,6 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 					}
 					return 0;
 				}
-			} else if (op === 'ASUM') {
-				// aggregated sum
-				return (
-					(values[a] as unknown[])?.reduce(
-						(acc, item) => acc + parseExpression(b, item as typeof values),
-						0
-					) ?? 0
-				);
 			} else {
 				// binary operators
 				const valueB = parseExpression(b, values);
