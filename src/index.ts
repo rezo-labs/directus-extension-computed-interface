@@ -20,15 +20,19 @@ export default defineInterface({
 			},
 		},
 		{
-			field: 'displayOnly',
-			name: 'Display Only',
-			type: 'boolean',
-			schema: {
-				default_value: false,
-			},
+			field: 'mode',
+			name: 'Field Mode',
+			type: 'string',
 			meta: {
-				interface: 'boolean',
 				width: 'half',
+				interface: 'select-dropdown',
+				options: {
+					allowNone: true,
+					choices: [
+						{ text: 'Display Only', value: 'displayonly' },
+						{ text: 'Read Only', value: 'readonly' },
+					],
+				},
 			},
 		},
 	],

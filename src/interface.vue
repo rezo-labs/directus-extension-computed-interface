@@ -1,5 +1,5 @@
 <template>
-	<div v-if="displayOnly">{{ computedValue }}</div>
+	<div v-if="mode">{{ computedValue }}</div>
 	<v-input v-else v-model="value" />
 </template>
 
@@ -30,14 +30,14 @@ export default defineComponent({
 			type: String,
 			default: '',
 		},
-		displayOnly: {
-			type: Boolean,
-			default: false,
+		mode: {
+			type: String,
+			default: null,
 		},
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
-		const computedValue = ref('');
+		const computedValue = ref(props.value);
 		const relations = useCollectionRelations(props.collection);
 		const values = useDeepValues(
 			inject<ComputedRef<Record<string, any>>>('values')!,
@@ -49,18 +49,15 @@ export default defineComponent({
 		);
 
 		if (values) {
-			if (props.displayOnly) {
-				computedValue.value = compute();
-			}
-
 			watch(values, () => {
-				if (props.displayOnly) {
-					computedValue.value = compute();
-				} else {
-					const newValue = compute();
-					if (newValue !== props.value) {
-						emit('input', newValue);
-					}
+				const newValue = compute();
+				computedValue.value = newValue;
+
+				if (props.mode === 'displayonly') {
+					return;
+				}
+				if (newValue !== props.value) {
+					emit('input', newValue);
 				}
 			});
 		}
