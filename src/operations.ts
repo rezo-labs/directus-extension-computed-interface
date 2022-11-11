@@ -1,8 +1,12 @@
+import { findValueByPath } from './utils';
+
 export function parseExpression(exp: string, values: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
-		if (exp in values) {
-			return values[exp];
+
+		let value = findValueByPath(values, exp);
+		if (typeof value !== 'object') {
+			return value;
 		}
 
 		const opMatch = parseOp(exp);
@@ -87,12 +91,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				}
 			} else if (op === 'ASUM') {
 				// aggregated sum
-				return (
-					(values[a] as unknown[])?.reduce(
-						(acc, item) => acc + parseExpression(b, item as typeof values),
-						0
-					) ?? 0
-				);
+				return (values[a] as unknown[])?.reduce((acc, item) => acc + parseExpression(b, item as typeof values), 0) ?? 0;
 			} else {
 				// binary operators
 				const valueB = parseExpression(b, values);

@@ -30,9 +30,9 @@ export const useCollectionRelations = (collection: string): Ref<Relation[]> => {
 };
 
 interface IRelationUpdate {
-	create: Record<string, any>[];
-	update: Record<string, any>[];
-	delete: (string | number)[];
+	create?: Record<string, any>[];
+	update?: Record<string, any>[];
+	delete?: (string | number)[];
 }
 
 export const useDeepValues = (
@@ -40,7 +40,7 @@ export const useDeepValues = (
 	relations: Ref<Relation[]>,
 	collection: string,
 	computedField: string,
-	pk: string,
+	pk: string | number,
 	template: string
 ) => {
 	const api = useApi();
@@ -49,73 +49,104 @@ export const useDeepValues = (
 	// This will serialize values so when o2m fields are updated, their changes can be seen.
 	const cloneValues = computed(() => JSON.stringify(values.value));
 
-	watch(cloneValues, async (val, oldVal) => {
-		if (!shouldUpdate(template, computedField, JSON.parse(val), JSON.parse(oldVal))) {
-			return;
+	watch(
+		cloneValues,
+		async (val, oldVal) => {
+			if (!shouldUpdate(template, computedField, JSON.parse(val), JSON.parse(oldVal))) {
+				return;
+			}
+
+			let relationalData: Record<string, any> = {};
+
+			for (const key of Object.keys(values.value)) {
+				const relation = relations.value.find((rel) => [rel.meta?.one_field, rel.meta?.many_field].includes(key));
+
+				if (!relation || !checkFieldInTemplate(template, key)) {
+					continue;
+				}
+
+				const isM2O = relation.collection === collection;
+				const fieldName = isM2O ? relation.meta?.many_field : relation.meta?.one_field;
+
+				let fieldChanges = values.value[fieldName!] as IRelationUpdate;
+				if (!fieldChanges) {
+					continue;
+				}
+
+				let arrayOfIds: (string | number)[] = [];
+				let arrayOfData: unknown[] = [];
+
+				if (isM2O) {
+					if (typeof fieldChanges === 'number' || typeof fieldChanges === 'string') {
+						fieldChanges = { update: [{ id: fieldChanges }] };
+					} else if (typeof fieldChanges === 'object') {
+						if ('id' in fieldChanges) {
+							fieldChanges = { update: [fieldChanges as { id: number | string }] };
+						} else {
+							fieldChanges = { create: [{ ...fieldChanges }] };
+						}
+					}
+				} else {
+					if (pk !== '+') {
+						const {
+							data: { data },
+						} = await api.get(`items/${collection}/${pk}`, {
+							params: {
+								fields: [key],
+							},
+						});
+						arrayOfIds = arrayOfIds.concat(data[key]);
+					}
+
+					if (fieldChanges.delete) {
+						arrayOfIds = arrayOfIds.filter((id) => !fieldChanges.delete!.includes(id));
+					}
+				}
+
+				if (fieldChanges.update) {
+					arrayOfIds = arrayOfIds.concat(fieldChanges.update.map(({ id }) => id));
+				}
+
+				if (arrayOfIds.length) {
+					const relatedCollection = isM2O ? relation.related_collection : relation.collection;
+
+					const {
+						data: { data },
+					} = await api.get(`items/${relatedCollection}`, {
+						params: { filter: { id: { _in: arrayOfIds } } },
+					});
+
+					// merging item updates
+					arrayOfData = data.map((item: any) => ({
+						...item,
+						...fieldChanges.update?.find(({ id }) => item.id === id),
+					}));
+				}
+
+				// must concat after request, created items doenst have ids
+				if (fieldChanges.create) {
+					arrayOfData = arrayOfData.concat(fieldChanges.create);
+				}
+
+				relationalData[key] = isM2O ? arrayOfData[0] : arrayOfData;
+			}
+
+			finalValues.value = { ...values.value, ...relationalData };
+		},
+		{
+			deep: false,
 		}
-
-		const relationalData: Record<string, any> = {};
-
-		for (const key of Object.keys(values.value)) {
-			const relation = relations.value.find((rel) => rel.meta?.one_field === key && rel.related_collection === collection);
-
-			if (!relation || !checkFieldInTemplate(template, key)) {
-				continue;
-			}
-
-			const fieldChanges = values.value[key] as IRelationUpdate;
-
-			if (!fieldChanges) {
-				continue;
-			}
-
-			let arrayOfIds: (string | number)[] = [];
-			let arrayOfData: unknown[] = [];
-			if (pk !== '+') {
-				const {
-					data: { data },
-				} = await api.get(`items/${collection}/${pk}`, {
-					params: {
-						fields: [key],
-					},
-				});
-				arrayOfIds = arrayOfIds.concat(data[key]);
-			}
-
-			if (fieldChanges.update) {
-				arrayOfIds = arrayOfIds.concat(fieldChanges.update.map(({ id }) => id));
-			}
-
-			if (fieldChanges.delete) {
-				arrayOfIds = arrayOfIds.filter((id) => !fieldChanges.delete.includes(id));
-			}
-
-			if (arrayOfIds.length) {
-				const {
-					data: { data },
-				} = await api.get(`items/${relation.collection}`, {
-					params: { filter: { id: { _in: arrayOfIds } } },
-				});
-
-				// merging item updates
-				arrayOfData = data.map((item: any) => ({
-					...item,
-					...fieldChanges.update?.find(({ id }) => item.id === id),
-				}));
-			}
-
-			// must concat after request, created items doenst have ids
-			if (fieldChanges.create) {
-				arrayOfData = arrayOfData.concat(fieldChanges.create);
-			}
-
-			relationalData[key] = arrayOfData;
-		}
-
-		finalValues.value = { ...values.value, ...relationalData };
-	}, {
-		deep: false,
-	});
+	);
 
 	return finalValues;
+};
+
+export const findValueByPath = (obj: Record<string, any>, path: string) => {
+	let value = obj;
+	for (const i of path.split('.')) {
+		if (value[i]) {
+			value = value[i];
+		}
+	}
+	return value;
 };
