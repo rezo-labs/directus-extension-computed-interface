@@ -45,6 +45,8 @@ export const useDeepValues = (
 ) => {
 	const api = useApi();
 	const finalValues = ref<Record<string, any>>({});
+	let fieldCache: Record<string, any> = {};
+	let itemCache: Record<string, any> = {};
 	// Directus store o2m value as reference so when o2m updated, val & oldVal in watch are the same.
 	// This will serialize values so when o2m fields are updated, their changes can be seen.
 	const cloneValues = computed(() => JSON.stringify(values.value));
@@ -52,7 +54,9 @@ export const useDeepValues = (
 	watch(
 		cloneValues,
 		async (val, oldVal) => {
-			if (!shouldUpdate(template, computedField, JSON.parse(val), JSON.parse(oldVal))) {
+			const valObj = JSON.parse(val);
+			const oldValObj = JSON.parse(oldVal);
+			if (!shouldUpdate(template, computedField, valObj, oldValObj)) {
 				return;
 			}
 
@@ -79,6 +83,13 @@ export const useDeepValues = (
 				if (isM2O) {
 					if (typeof fieldChanges === 'number' || typeof fieldChanges === 'string') {
 						fieldChanges = { update: [{ id: fieldChanges }] };
+
+						if (typeof oldValObj[key] === 'object') {
+							// When saving, fieldChanges will return to the initial value.
+							// We must clear cache to obtain the new value after saving.
+							fieldCache = {};
+							itemCache = {};
+						}
 					} else if (typeof fieldChanges === 'object') {
 						if ('id' in fieldChanges) {
 							fieldChanges = { update: [fieldChanges as { id: number | string }] };
@@ -87,15 +98,26 @@ export const useDeepValues = (
 						}
 					}
 				} else {
+					if (fieldChanges instanceof Array && !(oldValObj[key] instanceof Array)) {
+						// When saving, fieldChanges will return to the initial value.
+						// We must clear cache to obtain the new value after saving.
+						fieldCache = {};
+						itemCache = {};
+					}
+
 					if (pk !== '+') {
-						const {
-							data: { data },
-						} = await api.get(`items/${collection}/${pk}`, {
-							params: {
-								fields: [key],
-							},
-						});
-						arrayOfIds = arrayOfIds.concat(data[key]);
+						let data;
+						if (key in fieldCache) {
+							data = fieldCache[key];
+						} else {
+							data = (await api.get(`items/${collection}/${pk}`, {
+								params: {
+									fields: [key],
+								},
+							})).data.data[key];
+							fieldCache[key] = data;
+						}
+						arrayOfIds = arrayOfIds.concat(data);
 					}
 
 					if (fieldChanges.delete) {
@@ -109,18 +131,32 @@ export const useDeepValues = (
 
 				if (arrayOfIds.length) {
 					const relatedCollection = isM2O ? relation.related_collection : relation.collection;
+					const path = relatedCollection === 'directus_users' ? '/users' : `items/${relatedCollection}`;
 
-					const {
-						data: { data },
-					} = await api.get(`items/${relatedCollection}`, {
-						params: { filter: { id: { _in: arrayOfIds } } },
-					});
+					if (relatedCollection) {
+						let data;
+						if (relatedCollection in itemCache && arrayOfIds.every(id => id in itemCache[relatedCollection])) {
+							data = arrayOfIds.map(id => itemCache[relatedCollection][id]);
+						} else {
+							data = (await api.get(path, {
+								params: { filter: { id: { _in: arrayOfIds } } },
+							})).data.data;
+						}
 
-					// merging item updates
-					arrayOfData = data.map((item: any) => ({
-						...item,
-						...fieldChanges.update?.find(({ id }) => item.id === id),
-					}));
+						// merging item updates
+						arrayOfData = data.map((item: any) => {
+							if (relatedCollection in itemCache) {
+								itemCache[relatedCollection][item.id] = item;
+							} else {
+								itemCache[relatedCollection] = { [item.id]: item };
+							}
+
+							return {
+								...item,
+								...fieldChanges.update?.find(({ id }) => item.id === id),
+							};
+						});
+					}
 				}
 
 				// must concat after request, created items doenst have ids
