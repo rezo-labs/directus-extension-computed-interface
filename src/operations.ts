@@ -26,6 +26,9 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				if (op === 'STRING') {
 					return String(valueA);
 				}
+				if (op === 'DATE') {
+					return new Date(valueA);
+				}
 				// format
 				if (op === 'SLUG') {
 					return toSlug(valueA);

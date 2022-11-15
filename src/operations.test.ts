@@ -15,6 +15,11 @@ describe('Test parseExpression', () => {
     expect(parseExpression('STRING(a)', { a: 123 })).toBe('123');
   });
 
+  test('DATE op', () => {
+    expect(parseExpression('DATE(a)', { a: '2022-01-01' })).toEqual(new Date('2022-01-01'));
+    expect(parseExpression('DATE(a)', { a: 1640995200000 })).toEqual(new Date('2022-01-01'));
+  });
+
   test('SLUG op', () => {
     expect(parseExpression('SLUG(a)', { a: 'This is a title 123 !@#,./"' })).toBe('this-is-a-title-123-');
   });
@@ -100,6 +105,7 @@ describe('Test parseExpression', () => {
 
   test('SUBTRACT op', () => {
     expect(parseExpression('SUBTRACT(a, b)', { a: 5, b: 2 })).toBe(3);
+    expect(parseExpression('SUBTRACT(DATE(a), DATE(b))', { a: '2022-01-02', b: '2022-01-01' })).toBe(86400000);
   });
 
   test('MULTIPLY op', () => {
