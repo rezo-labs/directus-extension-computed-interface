@@ -4,8 +4,8 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
 
-		let value = findValueByPath(values, exp);
-		if (typeof value !== 'object') {
+		let { value, found } = findValueByPath(values, exp);
+		if (found) {
 			return value;
 		}
 
@@ -25,6 +25,9 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				}
 				if (op === 'STRING') {
 					return String(valueA);
+				}
+				if (op === 'DATE') {
+					return new Date(valueA);
 				}
 				// format
 				if (op === 'SLUG') {
@@ -197,21 +200,25 @@ export function parseOp(exp: string) {
 	return null;
 }
 
-function toSlug(str: string) {
-	str = str.replace(/^\s+|\s+$/g, ''); // trim
-	str = str.toLowerCase();
+export function toSlug(str: unknown) {
+	if (typeof str !== 'string') {
+		return '';
+	}
+
+	let res = str.replace(/^\s+|\s+$/g, ''); // trim
+	res = res.toLowerCase();
 
 	// remove accents
 	const from = 'àáãảạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệđùúủũụưừứửữựòóỏõọôồốổỗộơờớởỡợìíỉĩịäëïîöüûñçýỳỹỵỷ';
 	const to = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeduuuuuuuuuuuoooooooooooooooooiiiiiaeiiouuncyyyyy';
 	for (let i = 0, l = from.length; i < l; i++) {
-		str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+		res = res.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
 	}
 
-	str = str
+	res = res
 		.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
 		.replace(/\s+/g, '-') // collapse whitespace and replace by -
 		.replace(/-+/g, '-'); // collapse dashes
 
-	return str;
+	return res;
 }

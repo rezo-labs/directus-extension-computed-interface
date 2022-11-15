@@ -144,9 +144,11 @@ export const useDeepValues = (
 export const findValueByPath = (obj: Record<string, any>, path: string) => {
 	let value = obj;
 	for (const i of path.split('.')) {
-		if (value[i]) {
+		if (i in value) {
 			value = value[i];
+		} else {
+			return { value: null, found: false };
 		}
 	}
-	return value;
+	return { value, found: true };
 };

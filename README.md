@@ -58,6 +58,7 @@ Operator | Description
 `INT(a)` | convert to integer
 `FLOAT(a)` | convert to float
 `STRING(a)` | convert to string
+`DATE(a)` | convert to date
 
 ### Format
 
