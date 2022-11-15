@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { parseExpression, parseOp } from './operations';
+import { parseExpression, parseOp, toSlug } from './operations';
 
 describe('Test parseExpression', () => {
   test('INT op', () => {
@@ -267,5 +267,39 @@ describe('Test parseOp', () => {
       a: 'OP_(OP_(var1, OP_(var2, OP_(var3, var4))), var5)',
       b: null,
     });
+  });
+});
+
+describe('Test toSlug', () => {
+  test('English text', () => {
+    expect(toSlug('We’ll always be with you. No one’s ever really gone. A thousand generations live in you now.'))
+      .toBe('well-always-be-with-you-no-ones-ever-really-gone-a-thousand-generations-live-in-you-now');
+
+    expect(toSlug('123 ABC !@# a12 []=-,./<>? DEF')).toBe('123-abc-a12-def');
+  });
+
+  test('Multi-line', () => {
+    expect(toSlug(`
+We’ll always be with you. 
+No one’s ever really gone. 
+A thousand generations live in you now.`))
+      .toBe('well-always-be-with-you-no-ones-ever-really-gone-a-thousand-generations-live-in-you-now');
+  });
+
+  test('Non-English text', () => {
+    expect(toSlug(`
+  Trăm năm trong cõi người ta,
+  Chữ tài chữ mệnh khéo là ghét nhau.
+  Trải qua một cuộc bể dâu,
+  Những điều trông thấy mà đau đớn lòng.`))
+      .toBe('tram-nam-trong-coi-nguoi-ta-chu-tai-chu-menh-kheo-la-ghet-nhau-trai-qua-mot-cuoc-be-dau-nhung-dieu-trong-thay-ma-dau-don-long')
+  });
+
+  test('Not a string', () => {
+    expect(toSlug(1)).toBe('');
+    expect(toSlug({})).toBe('');
+    expect(toSlug([])).toBe('');
+    expect(toSlug(new Date())).toBe('');
+    expect(toSlug(new RegExp('123'))).toBe('');
   });
 });
