@@ -4,8 +4,8 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
 
-		let value = findValueByPath(values, exp);
-		if (typeof value !== 'object') {
+		let { value, found } = findValueByPath(values, exp);
+		if (found) {
 			return value;
 		}
 
