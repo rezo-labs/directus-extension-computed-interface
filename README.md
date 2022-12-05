@@ -73,6 +73,14 @@ Operator | Description
 --- | ---
 `DATE_ISO(a)` | transform date or date-like object to ISO string
 `DATE_UTC(a)` | transform date or date-like object to UTC string
+`YEAR(a)` | get year of a date object, similar to `getFullYear`
+`MONTH(a)` | get month of a date object, similar to `getMonth`
+`GET_DATE(a)` | get date of a date object, similar to `getDate`
+`DAY(a)` | get day of a date object, similar to `getDay`
+`HOURS(a)` | get hours of a date object, similar to `getHours`
+`MINUTES(a)` | get minutes of a date object, similar to `getMinutes`
+`SECONDS(a)` | get seconds of a date object, similar to `getSeconds`
+`TIME(a)` | get time of a date object, similar to `getTime`
 
 ### Arithmetic
 

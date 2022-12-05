@@ -1,7 +1,15 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test, jest } from '@jest/globals';
 import { parseExpression, parseOp, toSlug } from './operations';
 
+jest
+  .useFakeTimers()
+  .setSystemTime(new Date('2023-01-01'));
+
 describe('Test parseExpression', () => {
+  test('Dynamic variables', () => {
+    expect(parseExpression('$NOW', {})).toStrictEqual(new Date());
+  });
+
   test('INT op', () => {
     expect(parseExpression('INT(a)', { a: '1' })).toBe(1);
   });
@@ -28,12 +36,48 @@ describe('Test parseExpression', () => {
     expect(parseExpression('CURRENCY(a)', { a: 1000 })).toBe('1,000');
   });
 
-  test('DATE_ISO op', () => {
-    expect(parseExpression('DATE_ISO(a)', { a: '2022-01-01' })).toBe('2022-01-01T00:00:00.000Z');
-  });
+  describe('Date ops', () => {
+    test('DATE_ISO op', () => {
+      expect(parseExpression('DATE_ISO(a)', { a: '2022-01-01' })).toBe('2022-01-01T00:00:00.000Z');
+      expect(parseExpression('DATE_ISO($NOW)', {})).toBe('2023-01-01T00:00:00.000Z');
+    });
 
-  test('DATE_UTC op', () => {
-    expect(parseExpression('DATE_UTC(a)', { a: '2022-01-01' })).toBe('Sat, 01 Jan 2022 00:00:00 GMT');
+    test('DATE_UTC op', () => {
+      expect(parseExpression('DATE_UTC(a)', { a: '2022-01-01' })).toBe('Sat, 01 Jan 2022 00:00:00 GMT');
+      expect(parseExpression('DATE_UTC($NOW)', {})).toBe('Sun, 01 Jan 2023 00:00:00 GMT');
+    });
+
+    test('YEAR op', () => {
+      expect(parseExpression('YEAR($NOW)', {})).toBe(new Date().getFullYear());
+    });
+
+    test('MONTH op', () => {
+      expect(parseExpression('MONTH($NOW)', {})).toBe(new Date().getMonth());
+    });
+
+    test('GET_DATE op', () => {
+      expect(parseExpression('GET_DATE($NOW)', {})).toBe(new Date().getDate());
+    });
+
+    test('DAY op', () => {
+      expect(parseExpression('DAY($NOW)', {})).toBe(new Date().getDay());
+    });
+
+    test('HOURS op', () => {
+      expect(parseExpression('HOURS($NOW)', {})).toBe(new Date().getHours());
+    });
+
+    test('MINUTES op', () => {
+      expect(parseExpression('MINUTES($NOW)', {})).toBe(new Date().getMinutes());
+    });
+
+    test('SECONDS op', () => {
+      expect(parseExpression('SECONDS($NOW)', {})).toBe(new Date().getSeconds());
+    });
+
+    test('TIME op', () => {
+      expect(parseExpression('TIME($NOW)', {})).toBe(new Date().getTime());
+    });
   });
 
   test('ABS op', () => {
