@@ -71,8 +71,8 @@ describe('Test parseExpression', () => {
       expect(parseExpression('MINUTES($NOW)', {})).toBe(new Date().getMinutes());
     });
 
-    test('SECOND op', () => {
-      expect(parseExpression('SECOND($NOW)', {})).toBe(new Date().getSeconds());
+    test('SECONDS op', () => {
+      expect(parseExpression('SECONDS($NOW)', {})).toBe(new Date().getSeconds());
     });
 
     test('TIME op', () => {

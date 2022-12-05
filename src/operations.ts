@@ -48,7 +48,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				if (op === 'DATE_UTC') {
 					return new Date(valueA).toUTCString();
 				}
-				if (['YEAR', 'MONTH', 'GET_DATE', 'DAY', 'HOURS', 'MINUTES', 'SECOND', 'TIME'].includes(op)) {
+				if (['YEAR', 'MONTH', 'GET_DATE', 'DAY', 'HOURS', 'MINUTES', 'SECONDS', 'TIME'].includes(op)) {
 					if (valueA instanceof Date) {
 						const op2func = {
 							YEAR: 'getFullYear',
@@ -57,7 +57,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 							DAY: 'getDay',
 							HOURS: 'getHours',
 							MINUTES: 'getMinutes',
-							SECOND: 'getSeconds',
+							SECONDS: 'getSeconds',
 							TIME: 'getTime',
 						};
 						return valueA[op2func[op]]();
