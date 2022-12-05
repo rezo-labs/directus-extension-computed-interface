@@ -9,6 +9,11 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 			return value;
 		}
 
+		// Dynamic variables
+		if (exp === '$NOW') {
+			return new Date();
+		}
+
 		const opMatch = parseOp(exp);
 		if (opMatch) {
 			const { op, a, b } = opMatch;
@@ -42,6 +47,22 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				}
 				if (op === 'DATE_UTC') {
 					return new Date(valueA).toUTCString();
+				}
+				if (['YEAR', 'MONTH', 'DATE', 'DAY', 'HOURS', 'MINUTES', 'SECOND', 'TIME'].includes(op)) {
+					if (valueA instanceof Date) {
+						const mapper: Record<string, CallableFunction> = {
+							YEAR: valueA.getFullYear,
+							MONTH: valueA.getMonth,
+							DATE: valueA.getDate,
+							DAY: valueA.getDay,
+							HOURS: valueA.getHours,
+							MINUTES: valueA.getMinutes,
+							SECOND: valueA.getSeconds,
+							TIME: valueA.getTime,
+						};
+						return (mapper[op] as CallableFunction)();
+					}
+					return 0;
 				}
 				// arithmetic
 				if (op === 'ABS') {
