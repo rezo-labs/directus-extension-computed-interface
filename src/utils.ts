@@ -49,13 +49,16 @@ export const useDeepValues = (
 	let itemCache: Record<string, any> = {};
 	// Directus store o2m value as reference so when o2m updated, val & oldVal in watch are the same.
 	// This will serialize values so when o2m fields are updated, their changes can be seen.
-	const cloneValues = computed(() => JSON.stringify(values.value));
+	const cloneValues = computed(() => JSON.stringify(
+		values.value,
+		(k, v) => v === undefined ? null : v, // convert all undefined values to null to prevent JSON.stringify from removing their keys
+	));
 
 	watch(
 		cloneValues,
 		async (val, oldVal) => {
 			const valObj = JSON.parse(val);
-			const oldValObj = JSON.parse(oldVal);
+			const oldValObj = oldVal !== undefined ? JSON.parse(oldVal) : {};
 			if (!shouldUpdate(template, computedField, valObj, oldValObj)) {
 				return;
 			}
@@ -72,10 +75,11 @@ export const useDeepValues = (
 				const isM2O = relation.collection === collection;
 				const fieldName = isM2O ? relation.meta?.many_field : relation.meta?.one_field;
 
-				let fieldChanges = values.value[fieldName!] as IRelationUpdate;
-				if (!fieldChanges) {
-					continue;
-				}
+				let fieldChanges = values.value[fieldName!] as IRelationUpdate ?? {
+					create: [],
+					update: [],
+					delete: [],
+				};
 
 				let arrayOfIds: (string | number)[] = [];
 				let arrayOfData: unknown[] = [];
@@ -171,6 +175,7 @@ export const useDeepValues = (
 		},
 		{
 			deep: false,
+			immediate: true,
 		}
 	);
 
