@@ -24,7 +24,7 @@ export default defineInterface({
 			name: 'Field Mode',
 			type: 'string',
 			meta: {
-				width: 'half',
+				width: 'full',
 				interface: 'select-dropdown',
 				options: {
 					allowNone: true,
@@ -56,6 +56,18 @@ export default defineInterface({
 				interface: 'system-input-translated-string',
 				options: {
 					trim: false,
+				},
+			},
+		},
+		{
+			field: 'customCss',
+			name: 'Custom CSS',
+			type: 'json',
+			meta: {
+				width: 'full',
+				interface: 'input-code',
+				options: {
+					language: 'json',
 				},
 			},
 		},
