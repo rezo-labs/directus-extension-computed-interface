@@ -7,7 +7,7 @@ export default defineInterface({
 	icon: 'calculate',
 	description: 'Perform computed value based on other fields',
 	component: InterfaceComponent,
-	types: ['string', 'text', 'integer', 'decimal', 'bigInteger', 'float', 'boolean'],
+	types: ['string', 'text', 'integer', 'decimal', 'bigInteger', 'float', 'boolean', 'alias'],
 	group: 'other',
 	options: [
 		{
@@ -32,6 +32,30 @@ export default defineInterface({
 						{ text: 'Display Only', value: 'displayonly' },
 						{ text: 'Read Only', value: 'readonly' },
 					],
+				},
+			},
+		},
+		{
+			field: 'prefix',
+			name: 'Prefix',
+			type: 'string',
+			meta: {
+				width: 'half',
+				interface: 'system-input-translated-string',
+				options: {
+					trim: false,
+				},
+			},
+		},
+		{
+			field: 'suffix',
+			name: 'Suffix',
+			type: 'string',
+			meta: {
+				width: 'half',
+				interface: 'system-input-translated-string',
+				options: {
+					trim: false,
 				},
 			},
 		},

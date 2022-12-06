@@ -1,5 +1,5 @@
 <template>
-	<div v-if="mode">{{ computedValue }}</div>
+	<div v-if="mode">{{ prefix }}{{ computedValue }}{{ suffix }}</div>
 	<v-input v-else v-model="value" />
 </template>
 
@@ -31,6 +31,14 @@ export default defineComponent({
 			default: '',
 		},
 		mode: {
+			type: String,
+			default: null,
+		},
+		prefix: {
+			type: String,
+			default: null,
+		},
+		suffix: {
 			type: String,
 			default: null,
 		},
