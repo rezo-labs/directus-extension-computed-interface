@@ -5,6 +5,7 @@
 		<span class="suffix">{{ suffix }}</span>
 	</div>
 	<v-input v-else v-model="value" />
+	<v-notice v-if="errorMsg" type="danger">{{ errorMsg }}</v-notice>
 </template>
 
 <script lang="ts">
@@ -63,6 +64,7 @@ export default defineComponent({
 			props.primaryKey,
 			props.template
 		);
+		const errorMsg = ref<string | null>(null);
 
 		if (values) {
 			watch(values, () => {
@@ -80,13 +82,19 @@ export default defineComponent({
 
 		return {
 			computedValue,
+			errorMsg,
 		};
 
 		function compute() {
-			return props.template.replace(/{{.*?}}/g, (match) => {
-				const expression = match.slice(2, -2).trim();
-				return parseExpression(expression, values.value);
-			});
+			try {
+				return props.template.replace(/{{.*?}}/g, (match) => {
+					const expression = match.slice(2, -2).trim();
+					return parseExpression(expression, values.value);
+				});
+			} catch (err) {
+				errorMsg.value = err.message ?? 'Unknown error';
+				return '';
+			}
 		}
 	},
 });

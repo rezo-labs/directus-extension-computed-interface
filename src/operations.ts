@@ -190,6 +190,8 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 		if (!isNaN(parseFloat(exp))) {
 			return parseFloat(exp);
 		}
+
+		throw new Error(`Cannot parse expression: ${exp}`);
 	}
 	return '';
 }
