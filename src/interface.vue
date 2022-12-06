@@ -23,6 +23,10 @@ export default defineComponent({
 			type: String,
 			default: null,
 		},
+		type: {
+			type: String,
+			default: null,
+		},
 		collection: {
 			type: String,
 			default: '',
@@ -54,7 +58,7 @@ export default defineComponent({
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
-		const computedValue = ref(props.value);
+		const computedValue = ref<string | number | null>(props.value);
 		const relations = useCollectionRelations(props.collection);
 		const values = useDeepValues(
 			inject<ComputedRef<Record<string, any>>>('values')!,
@@ -87,13 +91,20 @@ export default defineComponent({
 
 		function compute() {
 			try {
-				return props.template.replace(/{{.*?}}/g, (match) => {
+				const res = props.template.replace(/{{.*?}}/g, (match) => {
 					const expression = match.slice(2, -2).trim();
 					return parseExpression(expression, values.value);
 				});
+				if (['integer', 'decimal', 'bigInteger'].includes(props.type)) {
+					return parseInt(res) || 0;
+				}
+				if (['float'].includes(props.type)) {
+					return parseFloat(res) || 0;
+				}
+				return res;
 			} catch (err) {
 				errorMsg.value = err.message ?? 'Unknown error';
-				return '';
+				return null;
 			}
 		}
 	},
