@@ -20,9 +20,20 @@ npm i directus-extension-computed-interface
 1. Go to **Settings**, create a new field with type string or number.
 2. In the **Interface** panel, choose **Computed** interface. There are 2 options:
     1. **Template**: Similar to M2M interface, determine how the field is calculated. Learn more about syntax in the next section.
-    2. **Display Only**: If the field is an alias and you don't want to save to the database, enable this.
+    2. **Field Mode**: Choose how the value is displayed.
+        - **null**: Default option. Show an input with the computed value but still allow manual editing.
+        - **Display Only**: Show the computed value but will not save it to the database. Usually used for alias fields.
+        - **Read Only**: Show an input with the computed value and disallow manual editing.
+    3. **Prefix**: a string to prefix the computed value.
+    4. **Suffix**: a string to suffix the computed value.
+    5. **Custom CSS**: an object for inline style binding. Only works with **Display Only** and **Read Only** mode. You can use this option to customize the appearance of the computed value such as font size, color, etc.
 
 # Syntax
+
+The template consists of 2 elements: plain strings & expressions.
+- Plain strings are string literal, often used for text interpolation.
+- Expressions can contains operators, other fields & numbers. They must be enclosed by `{{` and `}}`.
+
 ## Examples
 Sum 2 numbers:
 ```
@@ -143,4 +154,3 @@ Operator | Description
 
 # Limitation
 - Cannot parse literal strings (`{{ 's' }}`).
-- Cannot use relational fields (`{{ user.name }}`).
