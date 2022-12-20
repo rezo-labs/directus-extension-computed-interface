@@ -4,7 +4,15 @@
 		<span class="computed-value">{{ computedValue }}</span>
 		<span class="suffix">{{ suffix }}</span>
 	</div>
-	<v-input v-else :model-value="value" @update:model-value="$emit('input', $event)" />
+	<v-input
+		v-else
+		v-bind="$attrs"
+		:field="field"
+		:collection="collection"
+		:primary-key="primaryKey"
+		:model-value="value"
+		@update:model-value="$emit('input', $event)"
+	/>
 	<v-notice v-if="errorMsg" type="danger">{{ errorMsg }}</v-notice>
 </template>
 
