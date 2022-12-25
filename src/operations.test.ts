@@ -244,22 +244,31 @@ describe('Test parseExpression', () => {
     expect(parseExpression('ASUM(a, b)', { a: [{b: 5}, {b: 10}, {b: 0}, {b: 15}] })).toBe(30);
     expect(parseExpression('ASUM(a, MULTIPLY(b, c))', { a: [{b: 5, c: 1}, {b: 10, c: 2}, {b: 1000, c: 0}, {b: 15, c: 10}] })).toBe(175);
   });
+
+  test('IF op', () => {
+    expect(parseExpression('IF(a, b, c)', { a: true, b: 1, c: 2})).toBe(1);
+    expect(parseExpression('IF(a, b, c)', { a: false, b: 1, c: 2})).toBe(2);
+    expect(parseExpression('IF(a, b, c)', { a: 1, b: 1, c: 2})).toBe(2);
+    expect(parseExpression('IF(a, b, c)', { a: '1', b: 1, c: 2})).toBe(2);
+    expect(parseExpression('IF(a, b, c)', { a: {}, b: 1, c: 2})).toBe(2);
+    expect(parseExpression('IF(a, b, c)', { a: [], b: 1, c: 2})).toBe(2);
+    expect(parseExpression('IF(EQUAL(a, 5), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
+    expect(parseExpression('IF(AND(GT(a, 0), LT(a, 10)), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
+  });
 });
 
 describe('Test parseOp', () => {
   test('Simple unary op', () => {
     expect(parseOp('OP_(var)')).toStrictEqual({
       op: 'OP_',
-      a: 'var',
-      b: null,
+      args: ['var'],
     });
   });
 
   test('Simple binary op', () => {
     expect(parseOp('OP_(var1,var2)')).toStrictEqual({
       op: 'OP_',
-      a: 'var1',
-      b: 'var2',
+      args: ['var1', 'var2'],
     });
   });
 
@@ -274,48 +283,49 @@ describe('Test parseOp', () => {
   test('Complex op 1', () => {
     expect(parseOp('OP_(OP_(var1))')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(var1)',
-      b: null,
+      args: ['OP_(var1)'],
     });
   });
 
   test('Complex op 2', () => {
     expect(parseOp('OP_(OP_(var1),var2)')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(var1)',
-      b: 'var2',
+      args: ['OP_(var1)', 'var2'],
     });
   });
 
   test('Complex op 3', () => {
     expect(parseOp('OP_(OP_(var1),OP_(var2))')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(var1)',
-      b: 'OP_(var2)',
+      args: ['OP_(var1)', 'OP_(var2)'],
     });
   });
 
   test('Complex op 4', () => {
     expect(parseOp('OP_(OP_(OP_(var1), var2),OP_(var3))')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(OP_(var1), var2)',
-      b: 'OP_(var3)',
+      args: ['OP_(OP_(var1), var2)', 'OP_(var3)'],
     });
   });
 
   test('Complex op 5', () => {
     expect(parseOp('OP_(OP_(OP_(var1), var2),OP_(var3, OP_(var4, var5)))')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(OP_(var1), var2)',
-      b: 'OP_(var3, OP_(var4, var5))',
+      args: ['OP_(OP_(var1), var2)', 'OP_(var3, OP_(var4, var5))'],
     });
   });
 
   test('Complex op 5', () => {
     expect(parseOp('OP_(OP_(OP_(var1, OP_(var2, OP_(var3, var4))), var5))')).toStrictEqual({
       op: 'OP_',
-      a: 'OP_(OP_(var1, OP_(var2, OP_(var3, var4))), var5)',
-      b: null,
+      args: ['OP_(OP_(var1, OP_(var2, OP_(var3, var4))), var5)'],
+    });
+  });
+
+  test('Ternary op', () => {
+    expect(parseOp('OP_(OP_(var1),var2,var3)')).toStrictEqual({
+      op: 'OP_',
+      args: ['OP_(var1)', 'var2', 'var3'],
     });
   });
 });
