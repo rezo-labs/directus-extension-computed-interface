@@ -16,11 +16,11 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 
 		const opMatch = parseOp(exp);
 		if (opMatch) {
-			const { op, a, b } = opMatch;
-			const valueA = parseExpression(a, values);
+			const { op, args } = opMatch;
 
 			// unary operators
-			if (b === null) {
+			if (args.length === 1) {
+				const valueA = parseExpression(args[0], values);
 				// type conversion
 				if (op === 'INT') {
 					return parseInt(valueA);
@@ -113,12 +113,13 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 					}
 					return 0;
 				}
-			} else if (op === 'ASUM') {
+			} else if (op === 'ASUM' && args.length === 2) {
 				// aggregated sum
-				return (values[a] as unknown[])?.reduce((acc, item) => acc + parseExpression(b, item as typeof values), 0) ?? 0;
-			} else {
+				return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values), 0) ?? 0;
+			} else if (args.length === 2) {
 				// binary operators
-				const valueB = parseExpression(b, values);
+				const valueA = parseExpression(args[0], values);
+				const valueB = parseExpression(args[1], values);
 
 				// arithmetic
 				if (op === 'SUM') {
@@ -183,6 +184,13 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				if (op === 'OR') {
 					return valueA || valueB;
 				}
+			} else if (args.length === 3) {
+				if (op === 'IF') {
+					if (parseExpression(args[0], values) === true) {
+						return parseExpression(args[1], values);
+					}
+					return parseExpression(args[2], values);
+				}
 			}
 		}
 
@@ -196,29 +204,31 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 	return '';
 }
 
-export function parseOp(exp: string) {
+export function parseOp(exp: string): {
+	op: string;
+	args: string[];
+} | null {
 	const match = exp.match(/^([A-Z_]+)\((.+)\)$/);
 	if (match) {
+		const args = [];
 		const op = match[1] as string;
 		const innerExp = match[2] as string;
-		let braceCount = 0;
-		for (let i = 0; i < innerExp.length; i += 1) {
+
+		let braceCount = 0, i = 0, j = 0;
+		for (; i < innerExp.length; i += 1) {
 			const c = innerExp[i];
 			if (c === '(') braceCount += 1;
 			if (c === ')') braceCount -= 1;
 			if (c === ',' && braceCount === 0) {
-				return {
-					op,
-					a: innerExp.slice(0, i),
-					b: innerExp.slice(i + 1),
-				};
+				args.push(innerExp.slice(j, i));
+				j = i + 1;
 			}
 		}
-		return {
-			op,
-			a: innerExp,
-			b: null,
-		};
+		if (j < i) {
+			args.push(innerExp.slice(j, i));
+		}
+
+		return { op, args };
 	}
 	return null;
 }
