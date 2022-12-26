@@ -21,7 +21,7 @@ function shouldUpdate(
 		return false;
 	}
 
-	for (const key of Object.keys(val)) {
+	for (const key of Object.keys({ ...oldVal, ...val })) {
 		if (
 			key !== computedField &&
 			checkFieldInTemplate(template, key) &&
@@ -74,10 +74,16 @@ export const useDeepValues = (
 				return;
 			}
 
-			let relationalData: Record<string, any> = {};
-			const pkFinal = values.value.id || pk;
+			for (const key of Object.keys(oldValObj)) {
+				if (!(key in valObj)) {
+					valObj[key] = null;
+				}
+			}
 
-			for (const key of Object.keys(values.value)) {
+			let relationalData: Record<string, any> = {};
+			const pkFinal = valObj.id || pk;
+
+			for (const key of Object.keys(valObj)) {
 				const relation = relations.value.find((rel) => [rel.meta?.one_field, rel.meta?.many_field].includes(key));
 
 				if (!relation || !checkFieldInTemplate(template, key)) {
@@ -87,7 +93,7 @@ export const useDeepValues = (
 				const isM2O = relation.collection === collection;
 				const fieldName = isM2O ? relation.meta?.many_field : relation.meta?.one_field;
 
-				let fieldChanges = values.value[fieldName!] as IRelationUpdate ?? {
+				let fieldChanges = valObj[fieldName!] as IRelationUpdate ?? {
 					create: [],
 					update: [],
 					delete: [],
@@ -183,7 +189,7 @@ export const useDeepValues = (
 				relationalData[key] = isM2O ? arrayOfData[0] : arrayOfData;
 			}
 
-			finalValues.value = { ...values.value, ...relationalData };
+			finalValues.value = { ...valObj, ...relationalData };
 		},
 		{
 			deep: false,
