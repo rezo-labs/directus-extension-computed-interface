@@ -9,8 +9,19 @@ export function checkFieldInTemplate(template: string, field: string) {
 }
 
 /** Simple check which fields are used */
-function shouldUpdate(template: string, computedField: string, val: Record<string, any>, oldVal: Record<string, any>) {
-	for (const key of Object.keys(val)) {
+function shouldUpdate(
+	template: string,
+	computedField: string,
+	val: Record<string, any>,
+	oldVal: Record<string, any>,
+	pk: string | number,
+) {
+	// creating new item
+	if (val.id && pk === '+') {
+		return false;
+	}
+
+	for (const key of Object.keys({ ...oldVal, ...val })) {
 		if (
 			key !== computedField &&
 			checkFieldInTemplate(template, key) &&
@@ -59,13 +70,20 @@ export const useDeepValues = (
 		async (val, oldVal) => {
 			const valObj = JSON.parse(val);
 			const oldValObj = oldVal !== undefined ? JSON.parse(oldVal) : {};
-			if (!shouldUpdate(template, computedField, valObj, oldValObj)) {
+			if (!shouldUpdate(template, computedField, valObj, oldValObj, pk)) {
 				return;
 			}
 
-			let relationalData: Record<string, any> = {};
+			for (const key of Object.keys(oldValObj)) {
+				if (!(key in valObj)) {
+					valObj[key] = null;
+				}
+			}
 
-			for (const key of Object.keys(values.value)) {
+			let relationalData: Record<string, any> = {};
+			const pkFinal = valObj.id || pk;
+
+			for (const key of Object.keys(valObj)) {
 				const relation = relations.value.find((rel) => [rel.meta?.one_field, rel.meta?.many_field].includes(key));
 
 				if (!relation || !checkFieldInTemplate(template, key)) {
@@ -75,7 +93,7 @@ export const useDeepValues = (
 				const isM2O = relation.collection === collection;
 				const fieldName = isM2O ? relation.meta?.many_field : relation.meta?.one_field;
 
-				let fieldChanges = values.value[fieldName!] as IRelationUpdate ?? {
+				let fieldChanges = valObj[fieldName!] as IRelationUpdate ?? {
 					create: [],
 					update: [],
 					delete: [],
@@ -109,12 +127,12 @@ export const useDeepValues = (
 						itemCache = {};
 					}
 
-					if (pk !== '+') {
+					if (pkFinal !== '+') {
 						let data;
 						if (key in fieldCache) {
 							data = fieldCache[key];
 						} else {
-							data = (await api.get(`items/${collection}/${pk}`, {
+							data = (await api.get(`items/${collection}/${pkFinal}`, {
 								params: {
 									fields: [key],
 								},
@@ -171,7 +189,7 @@ export const useDeepValues = (
 				relationalData[key] = isM2O ? arrayOfData[0] : arrayOfData;
 			}
 
-			finalValues.value = { ...values.value, ...relationalData };
+			finalValues.value = { ...valObj, ...relationalData };
 		},
 		{
 			deep: false,

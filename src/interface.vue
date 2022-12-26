@@ -103,6 +103,9 @@ export default defineComponent({
 					const expression = match.slice(2, -2).trim();
 					return parseExpression(expression, values.value);
 				});
+
+				errorMsg.value = null;
+
 				if (['integer', 'decimal', 'bigInteger'].includes(props.type)) {
 					return parseInt(res) || 0;
 				}
