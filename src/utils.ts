@@ -9,7 +9,18 @@ export function checkFieldInTemplate(template: string, field: string) {
 }
 
 /** Simple check which fields are used */
-function shouldUpdate(template: string, computedField: string, val: Record<string, any>, oldVal: Record<string, any>) {
+function shouldUpdate(
+	template: string,
+	computedField: string,
+	val: Record<string, any>,
+	oldVal: Record<string, any>,
+	pk: string | number,
+) {
+	// creating new item
+	if (val.id && pk === '+') {
+		return false;
+	}
+
 	for (const key of Object.keys(val)) {
 		if (
 			key !== computedField &&
@@ -59,11 +70,12 @@ export const useDeepValues = (
 		async (val, oldVal) => {
 			const valObj = JSON.parse(val);
 			const oldValObj = oldVal !== undefined ? JSON.parse(oldVal) : {};
-			if (!shouldUpdate(template, computedField, valObj, oldValObj)) {
+			if (!shouldUpdate(template, computedField, valObj, oldValObj, pk)) {
 				return;
 			}
 
 			let relationalData: Record<string, any> = {};
+			const pkFinal = values.value.id || pk;
 
 			for (const key of Object.keys(values.value)) {
 				const relation = relations.value.find((rel) => [rel.meta?.one_field, rel.meta?.many_field].includes(key));
@@ -109,12 +121,12 @@ export const useDeepValues = (
 						itemCache = {};
 					}
 
-					if (pk !== '+') {
+					if (pkFinal !== '+') {
 						let data;
 						if (key in fieldCache) {
 							data = fieldCache[key];
 						} else {
-							data = (await api.get(`items/${collection}/${pk}`, {
+							data = (await api.get(`items/${collection}/${pkFinal}`, {
 								params: {
 									fields: [key],
 								},
