@@ -151,6 +151,18 @@ Operator | Description
 --- | ---
 `ASUM(a, b)` | Aggregated sum of O2M field. For example: calculate shopping cart total price with `ASUM(products, MULTIPLY(price, quantity))` where `products` is the O2M field in the shopping cart and `price` & `quantity` are 2 fields of `products`.
 
+### Condition
+
+Operator | Description
+--- | ---
+`IF(A, B, C)` | return `B` if `A` is `true`, otherwise `C`
+
+## Dynamic Variables
+
+There are 2 dynamic variables available that you can use in the expressions:
+- `$NOW`: return the current Date object. Example: `{{ YEAR($NOW) }}` returns the current year.
+- `$CURRENT_USER`: return the current user's id. Example: `{{ EQUAL($CURRENT_USER, user) }}` checks if the `user` field is the current user.
+
 
 # Limitation
 - Cannot parse literal strings (`{{ 's' }}`).
