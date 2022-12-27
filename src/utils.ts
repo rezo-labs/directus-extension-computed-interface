@@ -55,6 +55,7 @@ export const useDeepValues = (
 	template: string
 ) => {
 	const api = useApi();
+	const currentUser = useStores().useUserStore().currentUser.id;
 	const finalValues = ref<Record<string, any>>({});
 	let fieldCache: Record<string, any> = {};
 	let itemCache: Record<string, any> = {};
@@ -189,7 +190,7 @@ export const useDeepValues = (
 				relationalData[key] = isM2O ? arrayOfData[0] : arrayOfData;
 			}
 
-			finalValues.value = { ...valObj, ...relationalData };
+			finalValues.value = { ...valObj, ...relationalData, __currentUser: currentUser };
 		},
 		{
 			deep: false,
