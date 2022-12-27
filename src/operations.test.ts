@@ -8,6 +8,8 @@ jest
 describe('Test parseExpression', () => {
   test('Dynamic variables', () => {
     expect(parseExpression('$NOW', {})).toStrictEqual(new Date());
+    expect(parseExpression('$CURRENT_USER', {})).toBe(undefined);
+    expect(parseExpression('$CURRENT_USER', { __currentUser: 1 })).toBe(1);
   });
 
   test('INT op', () => {

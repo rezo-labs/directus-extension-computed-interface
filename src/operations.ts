@@ -13,6 +13,9 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 		if (exp === '$NOW') {
 			return new Date();
 		}
+		if (exp === '$CURRENT_USER') {
+			return values.__currentUser;
+		}
 
 		const opMatch = parseOp(exp);
 		if (opMatch) {
