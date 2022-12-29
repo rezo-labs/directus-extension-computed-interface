@@ -55,7 +55,7 @@ export const useDeepValues = (
 	template: string
 ) => {
 	const api = useApi();
-	const currentUser = useStores().useUserStore().currentUser.id;
+	const { currentUser } = useStores().useUserStore();
 	const finalValues = ref<Record<string, any>>({});
 	let fieldCache: Record<string, any> = {};
 	let itemCache: Record<string, any> = {};
