@@ -6,10 +6,25 @@ jest
   .setSystemTime(new Date('2023-01-01'));
 
 describe('Test parseExpression', () => {
-  test('Dynamic variables', () => {
-    expect(parseExpression('$NOW', {})).toStrictEqual(new Date());
-    expect(parseExpression('$CURRENT_USER', {})).toBe(undefined);
-    expect(parseExpression('$CURRENT_USER', { __currentUser: 1 })).toBe(1);
+  describe('Dynamic variables', () => {
+    test('$NOW', () => {
+      expect(parseExpression('$NOW', {})).toStrictEqual(new Date());
+    });
+
+    test('$CURRENT_USER', () => {
+      const user = {
+        id: 1,
+        name: 'Duy',
+        role: {
+          name: 'admin',
+        },
+      };
+      expect(parseExpression('$CURRENT_USER', {})).toBe(undefined);
+      expect(parseExpression('$CURRENT_USER', { __currentUser: user })).toBe(1);
+      expect(parseExpression('$CURRENT_USER.name', { __currentUser: user })).toBe('Duy');
+      expect(parseExpression('$CURRENT_USER.role.name', { __currentUser: user })).toBe('admin');
+      expect(parseExpression('$CURRENT_USER.something', { __currentUser: user })).toBe(null);
+    });
   });
 
   test('INT op', () => {

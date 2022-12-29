@@ -13,8 +13,11 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 		if (exp === '$NOW') {
 			return new Date();
 		}
-		if (exp === '$CURRENT_USER') {
-			return values.__currentUser;
+		if (exp.startsWith('$CURRENT_USER')) {
+			if (exp === '$CURRENT_USER') {
+				return values.__currentUser?.id;
+			}
+			return findValueByPath({ $CURRENT_USER: values.__currentUser }, exp).value;
 		}
 
 		const opMatch = parseOp(exp);
