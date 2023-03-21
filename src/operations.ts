@@ -1,10 +1,18 @@
 import { findValueByPath } from './utils';
 
-export function parseExpression(exp: string, values: Record<string, any>): any {
+export function parseExpression(exp: string, values: Record<string, any>, defaultValues: Record<string, any>): any {
 	if (values) {
 		exp = exp.trim();
 
 		let { value, found } = findValueByPath(values, exp);
+
+		if(!found || value === null) {
+			let defaults = findValueByPath(defaultValues, exp);
+			if(defaults.found) {
+				return defaults.value;
+			}
+		}
+
 		if (found) {
 			return value;
 		}
@@ -26,7 +34,7 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 
 			// unary operators
 			if (args.length === 1) {
-				const valueA = parseExpression(args[0], values);
+				const valueA = parseExpression(args[0], values, defaultValues);
 				// type conversion
 				if (op === 'INT') {
 					return parseInt(valueA);
@@ -121,11 +129,11 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				}
 			} else if (op === 'ASUM' && args.length === 2) {
 				// aggregated sum
-				return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values), 0) ?? 0;
+				return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}), 0) ?? 0;
 			} else if (args.length === 2) {
 				// binary operators
-				const valueA = parseExpression(args[0], values);
-				const valueB = parseExpression(args[1], values);
+				const valueA = parseExpression(args[0], values, defaultValues);
+				const valueB = parseExpression(args[1], values, defaultValues);
 
 				// arithmetic
 				if (op === 'SUM') {
@@ -192,10 +200,10 @@ export function parseExpression(exp: string, values: Record<string, any>): any {
 				}
 			} else if (args.length === 3) {
 				if (op === 'IF') {
-					if (parseExpression(args[0], values) === true) {
-						return parseExpression(args[1], values);
+					if (parseExpression(args[0], values, defaultValues) === true) {
+						return parseExpression(args[1], values, defaultValues);
 					}
-					return parseExpression(args[2], values);
+					return parseExpression(args[2], values, defaultValues);
 				}
 			}
 		}

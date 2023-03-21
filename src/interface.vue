@@ -20,6 +20,7 @@
 import { ComputedRef, defineComponent, inject, ref, watch } from 'vue';
 import { parseExpression } from './operations';
 import { useDeepValues, useCollectionRelations } from './utils';
+import { useCollection } from '@directus/extensions-sdk';
 
 export default defineComponent({
 	props: {
@@ -66,6 +67,7 @@ export default defineComponent({
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
+		const defaultValues = useCollection(props.collection).defaults
 		const computedValue = ref<string | number | null>(props.value);
 		const relations = useCollectionRelations(props.collection);
 		const values = useDeepValues(
@@ -101,7 +103,7 @@ export default defineComponent({
 			try {
 				const res = props.template.replace(/{{.*?}}/g, (match) => {
 					const expression = match.slice(2, -2).trim();
-					return parseExpression(expression, values.value);
+					return parseExpression(expression, values.value, defaultValues.value);
 				});
 
 				errorMsg.value = null;
