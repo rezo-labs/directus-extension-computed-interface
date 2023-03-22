@@ -87,7 +87,9 @@ export default defineComponent({
 					return;
 				}
 				if (newValue !== props.value) {
-					emit('input', newValue);
+					setTimeout(() => {
+						emit('input', newValue);
+					}, 1);
 				}
 			});
 		}
