@@ -1,6 +1,6 @@
 import { findValueByPath } from './utils';
 
-export function parseExpression(exp: string, values: Record<string, any>, defaultValues: Record<string, any>): any {
+export function parseExpression(exp: string, values: Record<string, any>, defaultValues: Record<string, any> = {}): any {
 	if (values) {
 		exp = exp.trim();
 
