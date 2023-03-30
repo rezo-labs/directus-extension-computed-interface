@@ -143,6 +143,11 @@ export const useDeepValues = (
 						arrayOfIds = arrayOfIds.concat(data);
 					}
 
+					if (fieldChanges.update) {
+						const updatedIds = fieldChanges.update.map(({ id }) => id);
+						arrayOfIds = arrayOfIds.filter((id) => !updatedIds.includes(id));
+					}
+
 					if (fieldChanges.delete) {
 						arrayOfIds = arrayOfIds.filter((id) => !fieldChanges.delete!.includes(id));
 					}
@@ -182,7 +187,7 @@ export const useDeepValues = (
 					}
 				}
 
-				// must concat after request, created items doenst have ids
+				// must concat after request, created items doesn't have ids
 				if (fieldChanges.create) {
 					arrayOfData = arrayOfData.concat(fieldChanges.create);
 				}
