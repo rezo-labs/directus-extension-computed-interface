@@ -89,6 +89,8 @@ Operator | Description
 --- | ---
 `DATE_ISO(a)` | transform date or date-like object to ISO string
 `DATE_UTC(a)` | transform date or date-like object to UTC string
+`DATE_STR(a)` | transform date or date-like object to string with format "YYYY-MM-DD"
+`TIME_STR(a)` | transform date or date-like object to string with format "HH:mm:ss"
 `YEAR(a)` | get year of a date object, similar to `getFullYear`
 `MONTH(a)` | get month of a date object, similar to `getMonth`
 `GET_DATE(a)` | get date of a date object, similar to `getDate`
@@ -111,22 +113,37 @@ Operator | Description
 `MULTIPLY(a, b)` | a * b
 `DIVIDE(a, b)` | a / b
 `REMAINDER(a, b)` | a % b
-`ROUND(a, n)` | round number `a` to `n` number of decimals, similar to `toFixed`
-`MAX(a, b)` | max value
-`MIN(a, b)` | min value
+`CEIL(a)` | returns the smallest integer greater than or equal to `a`.
+`FLOOR(a)` | returns the largest integer less than or equal to `a`.
+`ROUND(a)` | rounds to the nearest integer.
+`ROUND(a, n)` | rounds number `a` to `n` number of decimals, (`ROUND(1.23, 1) = 1.2`).
+`MAX(a, b)` | max value between `a` and `b`.
+`MAX(arr)` | max value of an array of numbers.
+`MIN(a, b)` | min value between `a` and `b`.
+`MIN(arr)` | min value of an array of numbers.
 `POWER(a, b)` | a^b
+`EXP(a)` | returns `e^a`, where `e` is Euler's number.
+`LOG(a)` | returns the natural logarithm (base `e`) of `a`.
 
 ### String
 
 Operator | Description
 --- | ---
-`STR_LEN(a)` | length of string
-`LOWER(a)` | to lower case
-`UPPER(a)` | to upper case
-`TRIM(a)` | removes whitespace at the beginning and end of string.
-`CONCAT(a, b)` | concat 2 strings `a` and `b`.
-`LEFT(a, b)` | extract `b` characters from the beginning of the string `a`.
-`RIGHT(a, b)` | extract `b` characters from the end of the string `a`.
+`STR_LEN(str)` | length of string
+`LOWER(str)` | to lower case
+`UPPER(str)` | to upper case
+`TRIM(str)` | removes whitespace at the beginning and end of string.
+`CONCAT(strA, strB)` | concat 2 strings `strA` and `strB`.
+`LEFT(str, count)` | extract `count` characters from the beginning of the string `str`.
+`RIGHT(str, count)` | extract `count` characters from the end of the string `str`.
+`MID(str, startAt, count)` | extract `count` characters from `startAt` position of the string `str`.
+`ENCODE_URL_COMPONENT(str)` | encode string to URL component.
+`REPT(str, count)` | repeat string `count` times.
+`JOIN(arr, separator)` | join an array of strings with `separator`.
+`SPLIT(str, separator)` | split string `str` by `separator` to an array of strings.
+`SEARCH(str, keyword)` | search `keyword` in `str` and return the position of the first occurrence. Return -1 if not found.
+`SEARCH(str, keyword, startAt)` | search `keyword` in `str` and return the position of the first occurrence after `startAt`. Return -1 if not found.
+`SUBSTITUTE(str, old, new)` | replace all occurrences of `old` in `str` with `new`.
 
 ### Boolean
 

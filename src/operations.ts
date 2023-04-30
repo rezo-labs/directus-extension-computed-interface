@@ -67,6 +67,22 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				if (op === 'DATE_UTC') {
 					return new Date(valueA).toUTCString();
 				}
+				if (op === 'DATE_STR') {
+					// format YYYY-MM-DD
+					const date = new Date(valueA);
+					const year = date.getFullYear();
+					const month = (date.getMonth() + 1).toString().padStart(2, '0');
+					const day = date.getDate().toString().padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				}
+				if (op === 'TIME_STR') {
+					// format HH:MM:SS
+					const date = new Date(valueA);
+					const hours = date.getHours().toString().padStart(2, '0');
+					const minutes = date.getMinutes().toString().padStart(2, '0');
+					const seconds = date.getSeconds().toString().padStart(2, '0');
+					return `${hours}:${minutes}:${seconds}`;
+				}
 				if (['YEAR', 'MONTH', 'GET_DATE', 'DAY', 'HOURS', 'MINUTES', 'SECONDS', 'TIME'].includes(op)) {
 					if (valueA instanceof Date) {
 						const op2func = {
@@ -102,6 +118,33 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 					}
 					return 0;
 				}
+				if (op === 'CEIL') {
+					return Math.ceil(valueA);
+				}
+				if (op === 'FLOOR') {
+					return Math.floor(valueA);
+				}
+				if (op === 'ROUND') {
+					return Math.round(valueA);
+				}
+				if (op === 'EXP') {
+					return Math.exp(valueA);
+				}
+				if (op === 'LOG') {
+					return Math.log(valueA);
+				}
+				if (op === 'MAX') {
+					if (valueA instanceof Array) {
+						return Math.max(...valueA);
+					}
+					return 0;
+				}
+				if (op === 'MIN') {
+					if (valueA instanceof Array) {
+						return Math.min(...valueA);
+					}
+					return 0;
+				}
 				// boolean
 				if (op === 'NULL') {
 					return valueA === null;
@@ -124,6 +167,9 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				}
 				if (op === 'TRIM') {
 					return String(valueA).trim();
+				}
+				if (op === 'ENCODE_URL_COMPONENT') {
+					return encodeURIComponent(valueA);
 				}
 				// array
 				if (op === 'ARRAY_LEN') {
@@ -178,6 +224,23 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				if (op === 'RIGHT') {
 					return String(valueA).slice(-Number(valueB));
 				}
+				if (op === 'REPT') {
+					return String(valueA).repeat(Number(valueB));
+				}
+				if (op === 'JOIN') {
+					if (valueA instanceof Array) {
+						return valueA.join(String(valueB));
+					}
+					return '';
+				}
+				if (op === 'SPLIT') {
+					return String(valueA).split(String(valueB));
+				}
+				if (op === 'SEARCH') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const find = String(parseExpression(args[1], values, defaultValues));
+					return str.indexOf(find);
+				}
 				// boolean
 				if (op === 'EQUAL') {
 					return valueA === valueB;
@@ -209,6 +272,24 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 						return parseExpression(args[1], values, defaultValues);
 					}
 					return parseExpression(args[2], values, defaultValues);
+				}
+				if (op === 'MID') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const startAt = Number(parseExpression(args[1], values, defaultValues));
+					const count = Number(parseExpression(args[2], values, defaultValues));
+					return str.slice(startAt, startAt + count);
+				}
+				if (op === 'SUBSTITUTE') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const old = String(parseExpression(args[1], values, defaultValues));
+					const newStr = String(parseExpression(args[2], values, defaultValues));
+					return str.split(old).join(newStr);
+				}
+				if (op === 'SEARCH') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const find = String(parseExpression(args[1], values, defaultValues));
+					const startAt = Number(parseExpression(args[2], values, defaultValues));
+					return str.indexOf(find, startAt);
 				}
 			}
 		}
