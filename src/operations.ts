@@ -102,6 +102,33 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 					}
 					return 0;
 				}
+				if (op === 'CEIL') {
+					return Math.ceil(valueA);
+				}
+				if (op === 'FLOOR') {
+					return Math.floor(valueA);
+				}
+				if (op === 'ROUND') {
+					return Math.round(valueA);
+				}
+				if (op === 'EXP') {
+					return Math.exp(valueA);
+				}
+				if (op === 'LOG') {
+					return Math.log(valueA);
+				}
+				if (op === 'MAX') {
+					if (valueA instanceof Array) {
+						return Math.max(...valueA);
+					}
+					return 0;
+				}
+				if (op === 'MIN') {
+					if (valueA instanceof Array) {
+						return Math.min(...valueA);
+					}
+					return 0;
+				}
 				// boolean
 				if (op === 'NULL') {
 					return valueA === null;

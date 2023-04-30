@@ -115,6 +115,36 @@ describe('Test parseExpression', () => {
     expect(parseExpression('AVERAGE(a)', { a: 1 })).toBe(0);
   });
 
+  test('CEIL op', () => {
+    expect(parseExpression('CEIL(a)', { a: 1.234 })).toBe(2);
+  });
+
+  test('FLOOR op', () => {
+    expect(parseExpression('FLOOR(a)', { a: 1.234 })).toBe(1);
+  });
+
+  test('ROUND op', () => {
+    expect(parseExpression('ROUND(a)', { a: 1.234 })).toBe(1);
+  });
+
+  test('EXP op', () => {
+    expect(parseExpression('EXP(a)', { a: 1 })).toBeCloseTo(Math.exp(1), 8);
+  });
+
+  test('LOG op', () => {
+    expect(parseExpression('LOG(a)', { a: 10 })).toBeCloseTo(Math.log(10), 8);
+  });
+
+  test('MAX op', () => {
+    expect(parseExpression('MAX(a)', { a: [1, 2, 30, 4, 5] })).toBe(30);
+    expect(parseExpression('MAX(a)', { a: 1 })).toBe(0);
+  });
+
+  test('MIN op', () => {
+    expect(parseExpression('MIN(a)', { a: [1, 2, 3, -4, 5] })).toBe(-4);
+    expect(parseExpression('MIN(a)', { a: 1 })).toBe(0);
+  });
+
   test('NULL op', () => {
     expect(parseExpression('NULL(a)', { a: null })).toBe(true);
     expect(parseExpression('NULL(a)', { a: undefined })).toBe(false);
