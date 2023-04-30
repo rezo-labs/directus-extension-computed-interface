@@ -18,7 +18,7 @@ npm i directus-extension-computed-interface
 
 # Get Started
 1. Go to **Settings**, create a new field with type string or number.
-2. In the **Interface** panel, choose **Computed** interface. There are 2 options:
+2. In the **Interface** panel, choose **Computed** interface. There are 5 options:
     1. **Template**: Similar to M2M interface, determine how the field is calculated. Learn more about syntax in the next section.
     2. **Field Mode**: Choose how the value is displayed.
         - **null**: Default option. Show an input with the computed value but still allow manual editing.
@@ -30,9 +30,9 @@ npm i directus-extension-computed-interface
 
 # Syntax
 
-The template consists of 2 elements: plain strings & expressions.
-- Plain strings are string literal, often used for text interpolation.
-- Expressions can contains operators, other fields & numbers. They must be enclosed by `{{` and `}}`.
+The template consists of 2 elements: **plain strings** & **expressions**.
+- **Plain** strings are string literal, often used for text interpolation.
+- **Expressions** can contains operators, field names, numbers & strings. They must be enclosed by `{{` and `}}`.
 
 ## Examples
 Sum 2 numbers:
@@ -58,6 +58,11 @@ Text interpolation:
 Complex calculation:
 ```
 {{ SUM(MULTIPLY(2, x), b) }}
+```
+
+Literal strings are enclosed by double quotes (`"`):
+```
+{{ CONCAT(file, ".txt") }}
 ```
 
 ## Available operators
@@ -119,9 +124,9 @@ Operator | Description
 `LOWER(a)` | to lower case
 `UPPER(a)` | to upper case
 `TRIM(a)` | removes whitespace at the beginning and end of string.
-`CONCAT(a, b)` | concat 2 strings
-`LEFT(a, b)` | extract `b` characters from the beginning of the string.
-`RIGHT(a, b)` | extract `b` characters from the end of the string.
+`CONCAT(a, b)` | concat 2 strings `a` and `b`.
+`LEFT(a, b)` | extract `b` characters from the beginning of the string `a`.
+`RIGHT(a, b)` | extract `b` characters from the end of the string `a`.
 
 ### Boolean
 
@@ -162,7 +167,3 @@ Operator | Description
 There are 2 dynamic variables available that you can use in the expressions:
 - `$NOW`: return the current Date object. Example: `{{ YEAR($NOW) }}` returns the current year.
 - `$CURRENT_USER`: return the current user's id. Example: `{{ EQUAL($CURRENT_USER, user) }}` checks if the `user` field is the current user.
-
-
-# Limitation
-- Cannot parse literal strings (`{{ 's' }}`).

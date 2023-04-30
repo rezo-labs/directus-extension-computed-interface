@@ -272,6 +272,64 @@ describe('Test parseExpression', () => {
     expect(parseExpression('IF(EQUAL(a, 5), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
     expect(parseExpression('IF(AND(GT(a, 0), LT(a, 10)), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
   });
+
+  describe('Nested expressions', () => {
+    test('Simple nested numeric expression', () => {
+      expect(parseExpression('SUM(a, MULTIPLY(b, c))', { a: 1, b: 2, c: 3 })).toBe(7);
+    });
+
+    test('Complex nested numeric expression', () => {
+      expect(parseExpression('SUM(a, MULTIPLY(b, SUM(c, d)))', { a: 1, b: 2, c: 3, d: 4 })).toBe(15);
+    });
+
+    test('Simple nested boolean expression', () => {
+      expect(parseExpression('AND(a, OR(b, c))', { a: true, b: false, c: false })).toBe(false);
+    });
+
+    test('Complex nested boolean expression', () => {
+      expect(parseExpression('AND(a, OR(b, AND(c, d)))', { a: true, b: false, c: true, d: false })).toBe(false);
+    });
+
+    test('Simple nested string expression', () => {
+      expect(parseExpression('CONCAT(a, CONCAT(b, c))', { a: 'a', b: 'b', c: 'c' })).toBe('abc');
+    });
+
+    test('Complex nested string expression', () => {
+      expect(parseExpression('CONCAT(a, CONCAT(b, CONCAT(c, d)))', { a: 'a', b: 'b', c: 'c', d: 'd' })).toBe('abcd');
+    });
+  });
+
+  describe('Literal strings', () => {
+    test('Simple string', () => {
+      expect(parseExpression('"a"', {})).toBe('a');
+    });
+
+    test('String with escaped quotes', () => {
+      expect(parseExpression('"a\\"b"', {})).toBe('a"b');
+    });
+
+    test('String with escaped backslash', () => {
+      expect(parseExpression('"a\\b"', {})).toBe('a\\b');
+    });
+
+    test('String with parentheses and comma', () => {
+      expect(parseExpression('"a(b,c)d"', {})).toBe('a(b,c)d');
+    });
+
+    test('String with all special characters', () => {
+      expect(parseExpression('"a(b,c)d\\"e\\f"', {})).toBe('a(b,c)d"e\\f');
+    });
+
+    test('String operator 1', () => {
+      expect(parseExpression('RIGHT(CONCAT(UPPER(CONCAT(a, "c")), 1), 3)', { a: 'ab' })).toBe('BC1');
+    });
+
+    test('String operator 2', () => {
+      expect(parseExpression('EQUAL(CONCAT(LOWER("A,()\\""), a), "a,()\\"bc")', { a: 'bc' })).toBe(true);
+      expect(parseExpression('EQUAL(CONCAT("A,()\\"", a), "a,()\\"bc")', { a: 'bc' })).toBe(false);
+      expect(parseExpression('EQUAL(CONCAT("A,()\\"", a), "A,()\\"bc")', { a: 'bc' })).toBe(true);
+    });
+  });
 });
 
 describe('Test parseOp', () => {
@@ -343,6 +401,31 @@ describe('Test parseOp', () => {
     expect(parseOp('OP_(OP_(var1),var2,var3)')).toStrictEqual({
       op: 'OP_',
       args: ['OP_(var1)', 'var2', 'var3'],
+    });
+  });
+
+  test('Contains space at both ends', () => {
+    expect(parseOp(' OP_(var1) ')).toStrictEqual({
+      op: 'OP_',
+      args: ['var1'],
+    });
+  });
+
+  test('Handle literal string', () => {
+    expect(parseOp('OP_("(abc)\\", \\"(def)", ")(,\\"")')).toStrictEqual({
+      op: 'OP_',
+      args: ['"(abc)\\", \\"(def)"', '")(,\\""'],
+    });
+  });
+
+  test('Handle literal string in complex op', () => {
+    expect(parseOp('OP_(OP_(var1), OP_("(abc)\\", \\"(def)"))')).toStrictEqual({
+      op: 'OP_',
+      args: ['OP_(var1)', 'OP_("(abc)\\", \\"(def)")'],
+    });
+    expect(parseOp('OP_(OP_("(abc)\\", \\"(def)"), OP_(var1))')).toStrictEqual({
+      op: 'OP_',
+      args: ['OP_("(abc)\\", \\"(def)")', 'OP_(var1)'],
     });
   });
 });
