@@ -67,6 +67,22 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				if (op === 'DATE_UTC') {
 					return new Date(valueA).toUTCString();
 				}
+				if (op === 'DATE_STR') {
+					// format YYYY-MM-DD
+					const date = new Date(valueA);
+					const year = date.getFullYear();
+					const month = (date.getMonth() + 1).toString().padStart(2, '0');
+					const day = date.getDate().toString().padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				}
+				if (op === 'TIME_STR') {
+					// format HH:MM:SS
+					const date = new Date(valueA);
+					const hours = date.getHours().toString().padStart(2, '0');
+					const minutes = date.getMinutes().toString().padStart(2, '0');
+					const seconds = date.getSeconds().toString().padStart(2, '0');
+					return `${hours}:${minutes}:${seconds}`;
+				}
 				if (['YEAR', 'MONTH', 'GET_DATE', 'DAY', 'HOURS', 'MINUTES', 'SECONDS', 'TIME'].includes(op)) {
 					if (valueA instanceof Date) {
 						const op2func = {

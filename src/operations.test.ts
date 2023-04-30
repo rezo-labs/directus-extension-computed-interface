@@ -62,6 +62,16 @@ describe('Test parseExpression', () => {
       expect(parseExpression('DATE_UTC($NOW)', {})).toBe('Sun, 01 Jan 2023 00:00:00 GMT');
     });
 
+    test('DATE_STR op', () => {
+      expect(parseExpression('DATE_STR(a)', { a: new Date('2022-12-31') })).toBe('2022-12-31');
+      expect(parseExpression('DATE_STR($NOW)', {})).toBe('2023-01-01');
+    });
+
+    test('TIME_STR op', () => {
+      expect(parseExpression('TIME_STR(a)', { a: new Date('2022-12-31T11:59:59') })).toBe('11:59:59');
+      expect(parseExpression('TIME_STR($NOW)', {})).toBe('00:00:00');
+    });
+
     test('YEAR op', () => {
       expect(parseExpression('YEAR($NOW)', {})).toBe(new Date().getFullYear());
     });
