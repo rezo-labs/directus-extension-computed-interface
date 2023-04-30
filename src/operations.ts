@@ -4,6 +4,11 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 	if (values) {
 		exp = exp.trim();
 
+		// literal string
+		if (exp.startsWith('"') && exp.endsWith('"')) {
+			return exp.slice(1, -1).replace(/\\"/g, '"');
+		}
+
 		let { value, found } = findValueByPath(values, exp);
 
 		if(!found || value === null) {
@@ -222,24 +227,34 @@ export function parseOp(exp: string): {
 	op: string;
 	args: string[];
 } | null {
-	const match = exp.match(/^([A-Z_]+)\((.+)\)$/);
+	const match = exp.trim().match(/^([A-Z_]+)\((.+)\)$/);
 	if (match) {
 		const args = [];
 		const op = match[1] as string;
 		const innerExp = match[2] as string;
 
-		let braceCount = 0, i = 0, j = 0;
+		let braceCount = 0,
+			i = 0,
+			j = 0,
+			inQuote = false,
+			escapeNext = false;
 		for (; i < innerExp.length; i += 1) {
 			const c = innerExp[i];
-			if (c === '(') braceCount += 1;
-			if (c === ')') braceCount -= 1;
-			if (c === ',' && braceCount === 0) {
-				args.push(innerExp.slice(j, i));
+			if (c === '(' && !inQuote) braceCount += 1;
+			else if (c === ')' && !inQuote) braceCount -= 1;
+			else if (c === ',' && !inQuote && braceCount === 0) {
+				args.push(innerExp.slice(j, i).trim());
 				j = i + 1;
 			}
+			else if (c === '"' && !escapeNext) inQuote = !inQuote;
+			else if (c === '\\' && inQuote) {
+				escapeNext = true;
+				continue;
+			}
+			escapeNext = false;
 		}
 		if (j < i) {
-			args.push(innerExp.slice(j, i));
+			args.push(innerExp.slice(j, i).trim());
 		}
 
 		return { op, args };
