@@ -152,6 +152,9 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				if (op === 'TRIM') {
 					return String(valueA).trim();
 				}
+				if (op === 'ENCODE_URL_COMPONENT') {
+					return encodeURIComponent(valueA);
+				}
 				// array
 				if (op === 'ARRAY_LEN') {
 					if (valueA instanceof Array) {
@@ -205,6 +208,23 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				if (op === 'RIGHT') {
 					return String(valueA).slice(-Number(valueB));
 				}
+				if (op === 'REPT') {
+					return String(valueA).repeat(Number(valueB));
+				}
+				if (op === 'JOIN') {
+					if (valueA instanceof Array) {
+						return valueA.join(String(valueB));
+					}
+					return '';
+				}
+				if (op === 'SPLIT') {
+					return String(valueA).split(String(valueB));
+				}
+				if (op === 'SEARCH') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const find = String(parseExpression(args[1], values, defaultValues));
+					return str.indexOf(find);
+				}
 				// boolean
 				if (op === 'EQUAL') {
 					return valueA === valueB;
@@ -236,6 +256,24 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 						return parseExpression(args[1], values, defaultValues);
 					}
 					return parseExpression(args[2], values, defaultValues);
+				}
+				if (op === 'MID') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const startAt = Number(parseExpression(args[1], values, defaultValues));
+					const count = Number(parseExpression(args[2], values, defaultValues));
+					return str.slice(startAt, startAt + count);
+				}
+				if (op === 'SUBSTITUTE') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const old = String(parseExpression(args[1], values, defaultValues));
+					const newStr = String(parseExpression(args[2], values, defaultValues));
+					return str.split(old).join(newStr);
+				}
+				if (op === 'SEARCH') {
+					const str = String(parseExpression(args[0], values, defaultValues));
+					const find = String(parseExpression(args[1], values, defaultValues));
+					const startAt = Number(parseExpression(args[2], values, defaultValues));
+					return str.indexOf(find, startAt);
 				}
 			}
 		}

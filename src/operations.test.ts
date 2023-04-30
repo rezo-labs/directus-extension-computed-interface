@@ -264,6 +264,10 @@ describe('Test parseExpression', () => {
       expect(parseExpression('TRIM(a)', { a: '   abc  def   ' })).toBe('abc  def');
     });
 
+    test('ENCODE_URL_COMPONENT op', () => {
+      expect(parseExpression('ENCODE_URL_COMPONENT(a)', { a: 'abc def' })).toBe('abc%20def');
+    });
+
     test('CONCAT op', () => {
       expect(parseExpression('CONCAT(a, b)', { a: '123', b: '456' })).toBe('123456');
     });
@@ -276,8 +280,35 @@ describe('Test parseExpression', () => {
       expect(parseExpression('RIGHT(a, b)', { a: '123456', b: 2 })).toBe('56');
     });
 
+    test('MID op', () => {
+      expect(parseExpression('MID(a, b, c)', { a: '123456', b: 1, c: 2 })).toBe('23');
+    });
+
     test('SLUG op', () => {
       expect(parseExpression('SLUG(a)', { a: 'This is a title 123 !@#,./"' })).toBe('this-is-a-title-123-');
+    });
+
+    test('REPT op', () => {
+      expect(parseExpression('REPT(a, b)', { a: '123', b: 3 })).toBe('123123123');
+    });
+
+    test('JOIN op', () => {
+      expect(parseExpression('JOIN(a, " - ")', { a: ['a', 'b', 'c'] })).toBe('a - b - c');
+    });
+
+    test('SPLIT op', () => {
+      expect(parseExpression('SPLIT(a, " - ")', { a: 'a - b - c' })).toEqual(['a', 'b', 'c']);
+    });
+
+    test('SUBSTITUTE op', () => {
+      expect(parseExpression('SUBSTITUTE(a, "a", "b")', { a: 'abcabc' })).toBe('bbcbbc');
+      expect(parseExpression('SUBSTITUTE(a, "d", "b")', { a: 'abcabc' })).toBe('abcabc');
+    });
+
+    test('SEARCH op', () => {
+      expect(parseExpression('SEARCH(a, "b")', { a: 'abcabc' })).toBe(1);
+      expect(parseExpression('SEARCH(a, "b", 3)', { a: 'abcabc' })).toBe(4);
+      expect(parseExpression('SEARCH(a, "d")', { a: 'abcabc' })).toBe(-1);
     });
   });
 
