@@ -347,6 +347,16 @@ describe('Test parseExpression', () => {
       expect(parseExpression('IF(EQUAL(a, 5), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
       expect(parseExpression('IF(AND(GT(a, 0), LT(a, 10)), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
     });
+
+    test('IFS op', () => {
+      expect(parseExpression('IFS(a, b, c, d)', { a: true, b: 1, c: true, d: 2})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d)', { a: true, b: 1, c: false, d: 2})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d)', { a: false, b: 1, c: true, d: 2})).toBe(2);
+      expect(parseExpression('IFS(a, b, c, d)', { a: false, b: 1, c: false, d: 2})).toBe(null);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: true, b: 1, c: true, d: 2, e: true, f: 3})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: true, d: 2, e: true, f: 3})).toBe(2);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: false, d: 2, e: true, f: 3})).toBe(3);
+    });
   });
 
   describe('Nested expressions', () => {

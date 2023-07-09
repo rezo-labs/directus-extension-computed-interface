@@ -291,6 +291,15 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 					const startAt = Number(parseExpression(args[2], values, defaultValues));
 					return str.indexOf(find, startAt);
 				}
+			} else if (args.length % 2 === 0) {
+				if (op === 'IFS') {
+					for (let i = 0; i < args.length; i += 2) {
+						if (parseExpression(args[i], values, defaultValues) === true) {
+							return parseExpression(args[i + 1], values, defaultValues);
+						}
+					}
+					return null;
+				}
 			}
 		}
 

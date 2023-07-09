@@ -178,6 +178,7 @@ Operator | Description
 Operator | Description
 --- | ---
 `IF(A, B, C)` | return `B` if `A` is `true`, otherwise `C`
+`IFS(A1, B1, A2, B2, ..., An, Bn)` | return `Bi` if `Ai` is the first to be `true`, if none of `Ai` is `true`, return `null`
 
 ## Dynamic Variables
 
