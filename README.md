@@ -18,7 +18,7 @@ npm i directus-extension-computed-interface
 
 # Get Started
 1. Go to **Settings**, create a new field with type string or number.
-2. In the **Interface** panel, choose **Computed** interface. There are 5 options:
+2. In the **Interface** panel, choose **Computed** interface. There are 6 options:
     1. **Template**: Similar to M2M interface, determine how the field is calculated. Learn more about syntax in the next section.
     2. **Field Mode**: Choose how the value is displayed.
         - **null**: Default option. Show an input with the computed value but still allow manual editing.
@@ -27,6 +27,7 @@ npm i directus-extension-computed-interface
     3. **Prefix**: a string to prefix the computed value.
     4. **Suffix**: a string to suffix the computed value.
     5. **Custom CSS**: an object for inline style binding. Only works with **Display Only** and **Read Only** mode. You can use this option to customize the appearance of the computed value such as font size, color, etc.
+    6. **Debug Mode**: Used for debugging the template. It will show an error message if the template is invalid. It will also log to console the result of each component of the template.
 
 # Syntax
 

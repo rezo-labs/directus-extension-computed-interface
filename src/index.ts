@@ -71,5 +71,15 @@ export default defineInterface({
 				},
 			},
 		},
+		{
+			field: 'debugMode',
+			name: 'Debug Mode',
+			type: 'boolean',
+			meta: {
+				width: 'full',
+				interface: 'boolean',
+				note: 'Used for debugging the template. It will show an error message if the template is invalid. It will also log to console the result of each component of the template.'
+			},
+		}
 	],
 });
