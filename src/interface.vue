@@ -64,6 +64,18 @@ export default defineComponent({
 			type: Object,
 			default: null,
 		},
+		debugMode: {
+			type: Boolean,
+			default: false,
+		},
+		computeIfEmpty: {
+			type: Boolean,
+			default: false,
+		},
+		initialCompute: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
@@ -93,6 +105,9 @@ export default defineComponent({
 						emit('input', newValue);
 					}, 1);
 				}
+			}, {
+				immediate: props.initialCompute ||
+					(props.computeIfEmpty && (props.value === null || props.value === undefined)),
 			});
 		}
 
@@ -105,7 +120,7 @@ export default defineComponent({
 			try {
 				const res = props.template.replace(/{{.*?}}/g, (match) => {
 					const expression = match.slice(2, -2).trim();
-					return parseExpression(expression, values.value, defaultValues.value);
+					return parseExpression(expression, values.value, defaultValues.value, props.debugMode);
 				});
 
 				errorMsg.value = null;

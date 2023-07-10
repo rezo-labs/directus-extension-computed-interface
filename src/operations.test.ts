@@ -334,6 +334,46 @@ describe('Test parseExpression', () => {
       expect(parseExpression('ASUM(a, b)', { a: [{b: 5}, {b: 10}, {b: 0}, {b: 15}] })).toBe(30);
       expect(parseExpression('ASUM(a, MULTIPLY(b, c))', { a: [{b: 5, c: 1}, {b: 10, c: 2}, {b: 1000, c: 0}, {b: 15, c: 10}] })).toBe(175);
     });
+
+    test('AMIN op', () => {
+      expect(parseExpression('AMIN(a, b)', { a: [{b: 5}, {b: 10}, {b: -5}, {b: 15}] })).toBe(-5);
+      expect(parseExpression('AMIN(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(-15);
+    });
+
+    test('AMAX op', () => {
+      expect(parseExpression('AMAX(a, b)', { a: [{b: 5}, {b: 10}, {b: -5}, {b: 15}] })).toBe(15);
+      expect(parseExpression('AMAX(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(10);
+    });
+
+    test('AAVG op', () => {
+      expect(parseExpression('AAVG(a, b)', { a: [{b: 5}, {b: 10}, {b: 0}, {b: 15}] })).toBe(7.5);
+      expect(parseExpression('AAVG(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(-1.25);
+    });
+
+    test('AMUL op', () => {
+      expect(parseExpression('AMUL(a, b)', { a: [{b: 5}, {b: 10}, {b: 1}, {b: 15}] })).toBe(750);
+      expect(parseExpression('AMUL(a, SUM(b, c))', { a: [{b: 10, c: 0}, {b: 15, c: -30}] })).toBe(-150);
+    });
+
+    test('AAND op', () => {
+      expect(parseExpression('AAND(a, b)', { a: [{b: true}, {b: true}, {b: true}, {b: true}] })).toBe(true);
+      expect(parseExpression('AAND(a, b)', { a: [{b: true}, {b: true}, {b: false}, {b: true}] })).toBe(false);
+      expect(parseExpression('AAND(a, GT(b, 0))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(true);
+      expect(parseExpression('AAND(a, GT(b, 2))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(false);
+    });
+
+    test('AOR op', () => {
+      expect(parseExpression('AOR(a, b)', { a: [{b: false}, {b: false}, {b: false}, {b: false}] })).toBe(false);
+      expect(parseExpression('AOR(a, b)', { a: [{b: false}, {b: false}, {b: true}, {b: false}] })).toBe(true);
+      expect(parseExpression('AOR(a, EQUAL(b, 1))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(true);
+      expect(parseExpression('AOR(a, EQUAL(b, 0))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(false);
+    });
+
+    test('ACOUNT op', () => {
+      expect(parseExpression('ACOUNT(a, b)', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(4);
+      expect(parseExpression('ACOUNT(a, GT(b, 1))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(3);
+      expect(parseExpression('ACOUNT(a, LTE(b, 2))', { a: [{b: 1}, {b: 2}, {b: 3}, {b: 4}] })).toBe(2);
+    });
   });
 
   describe('Condition ops', () => {
@@ -346,6 +386,16 @@ describe('Test parseExpression', () => {
       expect(parseExpression('IF(a, b, c)', { a: [], b: 1, c: 2})).toBe(2);
       expect(parseExpression('IF(EQUAL(a, 5), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
       expect(parseExpression('IF(AND(GT(a, 0), LT(a, 10)), b, c)', { a: 5, b: 1, c: 2})).toBe(1);
+    });
+
+    test('IFS op', () => {
+      expect(parseExpression('IFS(a, b, c, d)', { a: true, b: 1, c: true, d: 2})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d)', { a: true, b: 1, c: false, d: 2})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d)', { a: false, b: 1, c: true, d: 2})).toBe(2);
+      expect(parseExpression('IFS(a, b, c, d)', { a: false, b: 1, c: false, d: 2})).toBe(null);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: true, b: 1, c: true, d: 2, e: true, f: 3})).toBe(1);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: true, d: 2, e: true, f: 3})).toBe(2);
+      expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: false, d: 2, e: true, f: 3})).toBe(3);
     });
   });
 

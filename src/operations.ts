@@ -1,6 +1,25 @@
 import { findValueByPath } from './utils';
 
-export function parseExpression(exp: string, values: Record<string, any>, defaultValues: Record<string, any> = {}): any {
+export function parseExpression(
+	exp: string,
+	values: Record<string, any>,
+	defaultValues: Record<string, any> = {},
+	debug: boolean = false,
+): any {
+	const result = _parseExpression(exp, values, defaultValues, debug);
+	if (debug) {
+		console.log(`${exp} =`, result);
+	}
+
+	return result;
+}
+
+function _parseExpression(
+	exp: string,
+	values: Record<string, any>,
+	defaultValues: Record<string, any> = {},
+	debug: boolean = false,
+): any {
 	if (values) {
 		exp = exp.trim();
 
@@ -39,7 +58,7 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 
 			// unary operators
 			if (args.length === 1) {
-				const valueA = parseExpression(args[0], values, defaultValues);
+				const valueA = parseExpression(args[0], values, defaultValues, debug);
 				// type conversion
 				if (op === 'INT') {
 					return parseInt(valueA);
@@ -178,13 +197,45 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 					}
 					return 0;
 				}
-			} else if (op === 'ASUM' && args.length === 2) {
-				// aggregated sum
-				return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}), 0) ?? 0;
 			} else if (args.length === 2) {
+				// aggregated operators
+				if (op === 'ASUM') {
+					// aggregated sum
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}, debug), 0) ?? 0;
+				}
+				if (op === 'AMIN') {
+					// aggregated min
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => Math.min(acc, parseExpression(args[1], item as typeof values, {}, debug)), Infinity) ?? 0;
+				}
+				if (op === 'AMAX') {
+					// aggregated max
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => Math.max(acc, parseExpression(args[1], item as typeof values, {}, debug)), -Infinity) ?? 0;
+				}
+				if (op === 'AAVG') {
+					// aggregated average
+					const arr = (values[args[0]] as unknown[]) ?? [];
+					return arr.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}, debug), 0) / arr.length;
+				}
+				if (op === 'AMUL') {
+					// aggregated multiplication
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc * parseExpression(args[1], item as typeof values, {}, debug), 1) ?? 0;
+				}
+				if (op === 'AAND') {
+					// aggregated and
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc && parseExpression(args[1], item as typeof values, {}, debug), true) ?? false;
+				}
+				if (op === 'AOR') {
+					// aggregated or
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc || parseExpression(args[1], item as typeof values, {}, debug), false) ?? false;
+				}
+				if (op === 'ACOUNT') {
+					// aggregated count
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (parseExpression(args[1], item as typeof values, {}, debug) ? 1 : 0), 0) ?? 0;
+				}
+
 				// binary operators
-				const valueA = parseExpression(args[0], values, defaultValues);
-				const valueB = parseExpression(args[1], values, defaultValues);
+				const valueA = parseExpression(args[0], values, defaultValues, debug);
+				const valueB = parseExpression(args[1], values, defaultValues, debug);
 
 				// arithmetic
 				if (op === 'SUM') {
@@ -237,8 +288,8 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 					return String(valueA).split(String(valueB));
 				}
 				if (op === 'SEARCH') {
-					const str = String(parseExpression(args[0], values, defaultValues));
-					const find = String(parseExpression(args[1], values, defaultValues));
+					const str = String(valueA);
+					const find = String(valueB);
 					return str.indexOf(find);
 				}
 				// boolean
@@ -268,28 +319,37 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 				}
 			} else if (args.length === 3) {
 				if (op === 'IF') {
-					if (parseExpression(args[0], values, defaultValues) === true) {
-						return parseExpression(args[1], values, defaultValues);
+					if (parseExpression(args[0], values, defaultValues, debug) === true) {
+						return parseExpression(args[1], values, defaultValues, debug);
 					}
-					return parseExpression(args[2], values, defaultValues);
+					return parseExpression(args[2], values, defaultValues, debug);
 				}
 				if (op === 'MID') {
-					const str = String(parseExpression(args[0], values, defaultValues));
-					const startAt = Number(parseExpression(args[1], values, defaultValues));
-					const count = Number(parseExpression(args[2], values, defaultValues));
+					const str = String(parseExpression(args[0], values, defaultValues, debug));
+					const startAt = Number(parseExpression(args[1], values, defaultValues, debug));
+					const count = Number(parseExpression(args[2], values, defaultValues, debug));
 					return str.slice(startAt, startAt + count);
 				}
 				if (op === 'SUBSTITUTE') {
-					const str = String(parseExpression(args[0], values, defaultValues));
-					const old = String(parseExpression(args[1], values, defaultValues));
-					const newStr = String(parseExpression(args[2], values, defaultValues));
+					const str = String(parseExpression(args[0], values, defaultValues, debug));
+					const old = String(parseExpression(args[1], values, defaultValues, debug));
+					const newStr = String(parseExpression(args[2], values, defaultValues, debug));
 					return str.split(old).join(newStr);
 				}
 				if (op === 'SEARCH') {
-					const str = String(parseExpression(args[0], values, defaultValues));
-					const find = String(parseExpression(args[1], values, defaultValues));
-					const startAt = Number(parseExpression(args[2], values, defaultValues));
+					const str = String(parseExpression(args[0], values, defaultValues, debug));
+					const find = String(parseExpression(args[1], values, defaultValues, debug));
+					const startAt = Number(parseExpression(args[2], values, defaultValues, debug));
 					return str.indexOf(find, startAt);
+				}
+			} else if (args.length % 2 === 0) {
+				if (op === 'IFS') {
+					for (let i = 0; i < args.length; i += 2) {
+						if (parseExpression(args[i], values, defaultValues, debug) === true) {
+							return parseExpression(args[i + 1], values, defaultValues, debug);
+						}
+					}
+					return null;
 				}
 			}
 		}
@@ -299,7 +359,9 @@ export function parseExpression(exp: string, values: Record<string, any>, defaul
 			return parseFloat(exp);
 		}
 
-		throw new Error(`Cannot parse expression: ${exp}`);
+		if (debug) {
+			throw new Error(`Cannot parse expression: ${exp}`);
+		}
 	}
 	return '';
 }

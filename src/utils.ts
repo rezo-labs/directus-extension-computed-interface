@@ -167,7 +167,7 @@ export const useDeepValues = (
 							data = arrayOfIds.map(id => itemCache[relatedCollection][id]);
 						} else {
 							data = (await api.get(path, {
-								params: { filter: { id: { _in: arrayOfIds } } },
+								params: { filter: { id: { _in: arrayOfIds.join(',') } } },
 							})).data.data;
 						}
 
