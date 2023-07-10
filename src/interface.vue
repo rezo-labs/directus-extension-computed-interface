@@ -68,6 +68,14 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		computeIfEmpty: {
+			type: Boolean,
+			default: false,
+		},
+		initialCompute: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	emits: ['input'],
 	setup(props, { emit }) {
@@ -97,6 +105,9 @@ export default defineComponent({
 						emit('input', newValue);
 					}, 1);
 				}
+			}, {
+				immediate: props.initialCompute ||
+					(props.computeIfEmpty && (props.value === null || props.value === undefined)),
 			});
 		}
 
