@@ -174,7 +174,14 @@ Operator | Description
 
 Operator | Description
 --- | ---
-`ASUM(a, b)` | Aggregated sum of O2M field. For example: calculate shopping cart total price with `ASUM(products, MULTIPLY(price, quantity))` where `products` is the O2M field in the shopping cart and `price` & `quantity` are 2 fields of `products`.
+`ASUM(a, b)` | Aggregated sum of O2M field. For example: calculate shopping cart total price with `ASUM(products, MULTIPLY(price, quantity))`, where `products` is the O2M field in the shopping cart and `price` & `quantity` are 2 fields of `products`.
+`AMIN(a, b)` | Aggregated min of O2M field.
+`AMAX(a, b)` | Aggregated max of O2M field.
+`AAVG(a, b)` | Aggregated average of O2M field.
+`AMUL(a, b)` | Aggregated multiplication of O2M field.
+`AAND(a, b)` | Aggregated logical AND of O2M field. Only return `true` if all values are `true`.
+`AOR(a, b)` | Aggregated logical OR of O2M field. Only return `true` if at least one value is `true`.
+`ACOUNT(a, b)` | Aggregated count of O2M field. Only count true values. For example: count the number of products that are in stock with `ACOUNT(products, GT(stock, 0))`, where `stock` is a field of `products`.
 
 ### Condition
 
