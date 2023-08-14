@@ -14,24 +14,24 @@ function shouldUpdate(
 	computedField: string,
 	val: Record<string, any>,
 	oldVal: Record<string, any>,
-	pk: string | number,
 ) {
-	// creating new item
-	if (val.id && pk === '+') {
-		return false;
-	}
-
+	const changedFields = [];
 	for (const key of Object.keys({ ...oldVal, ...val })) {
 		if (
 			key !== computedField &&
-			checkFieldInTemplate(template, key) &&
 			val[key] !== oldVal[key] &&
 			JSON.stringify(val[key]) !== JSON.stringify(oldVal[key])
 		) {
-			return true;
+			changedFields.push(key);
 		}
 	}
-	return false;
+
+	if (!changedFields.length) {
+		// update even if no fields changed
+		return true;
+	}
+
+	return changedFields.some((field) => checkFieldInTemplate(template, field));
 }
 
 export const useCollectionRelations = (collection: string): Ref<Relation[]> => {
@@ -49,14 +49,16 @@ interface IRelationUpdate {
 export const useDeepValues = (
 	values: Ref<Record<string, any>>,
 	relations: Ref<Relation[]>,
-	collection: string,
-	computedField: string,
-	pk: string | number,
+	collection: Ref<string>,
+	computedField: Ref<string>,
+	pk: Ref<string | number>,
 	template: string
 ) => {
 	const api = useApi();
-	const { currentUser } = useStores().useUserStore();
-	const finalValues = ref<Record<string, any>>({});
+	const userStore = useStores().useUserStore();
+	const finalValues = ref<Record<string, any>>({
+		__currentUser: userStore.currentUser,
+	});
 	let fieldCache: Record<string, any> = {};
 	let itemCache: Record<string, any> = {};
 	// Directus store o2m value as reference so when o2m updated, val & oldVal in watch are the same.
@@ -71,7 +73,7 @@ export const useDeepValues = (
 		async (val, oldVal) => {
 			const valObj = JSON.parse(val);
 			const oldValObj = oldVal !== undefined ? JSON.parse(oldVal) : {};
-			if (!shouldUpdate(template, computedField, valObj, oldValObj, pk)) {
+			if (!shouldUpdate(template, computedField.value, valObj, oldValObj)) {
 				return;
 			}
 
@@ -91,7 +93,7 @@ export const useDeepValues = (
 					continue;
 				}
 
-				const isM2O = relation.collection === collection;
+				const isM2O = relation.collection === collection.value;
 				const fieldName = isM2O ? relation.meta?.many_field : relation.meta?.one_field;
 
 				let fieldChanges = valObj[fieldName!] as IRelationUpdate ?? {
@@ -195,7 +197,7 @@ export const useDeepValues = (
 				relationalData[key] = isM2O ? arrayOfData[0] : arrayOfData;
 			}
 
-			finalValues.value = { ...valObj, ...relationalData, __currentUser: currentUser };
+			finalValues.value = { ...valObj, ...relationalData, __currentUser: userStore.currentUser };
 		},
 		{
 			deep: false,
