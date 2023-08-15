@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { ComputedRef, defineComponent, inject, ref, watch } from 'vue';
+import { ComputedRef, defineComponent, inject, ref, watch, toRefs } from 'vue';
 import { parseExpression } from './operations';
 import { useDeepValues, useCollectionRelations } from './utils';
 import { useCollection } from '@directus/extensions-sdk';
@@ -82,12 +82,14 @@ export default defineComponent({
 		const defaultValues = useCollection(props.collection).defaults
 		const computedValue = ref<string | number | null>(props.value);
 		const relations = useCollectionRelations(props.collection);
+		const { collection, field, primaryKey } = toRefs(props)
+
 		const values = useDeepValues(
 			inject<ComputedRef<Record<string, any>>>('values')!,
 			relations,
-			props.collection,
-			props.field,
-			props.primaryKey,
+			collection,
+			field,
+			primaryKey,
 			props.template
 		);
 		const errorMsg = ref<string | null>(null);
