@@ -84,7 +84,7 @@ export const useDeepValues = (
 			}
 
 			let relationalData: Record<string, any> = {};
-			const pkFinal = valObj.id || pk;
+			const pkFinal = valObj.id || pk.value;
 
 			for (const key of Object.keys(valObj)) {
 				const relation = relations.value.find((rel) => [rel.meta?.one_field, rel.meta?.many_field].includes(key));
@@ -135,7 +135,7 @@ export const useDeepValues = (
 						if (key in fieldCache) {
 							data = fieldCache[key];
 						} else {
-							data = (await api.get(`items/${collection}/${pkFinal}`, {
+							data = (await api.get(`items/${collection.value}/${pkFinal}`, {
 								params: {
 									fields: [key],
 								},
