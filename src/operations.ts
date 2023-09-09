@@ -267,6 +267,28 @@ function _parseExpression(
 					// aggregated count
 					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (parseExpression(args[1], item as typeof values, {}, debug) ? 1 : 0), 0) ?? 0;
 				}
+				// loop operators
+				if (op === 'MAP') {
+					// map
+					return (values[args[0]] as unknown[])?.map((item) => parseExpression(args[1], item as typeof values, {}, debug)) ?? [];
+				}
+				if (op === 'FILTER') {
+					// filter
+					return (values[args[0]] as unknown[])?.filter((item) => parseExpression(args[1], item as typeof values, {}, debug)) ?? [];
+				}
+				if (op === 'SORT') {
+					// sort
+					const arr = (values[args[0]] as unknown[]) ?? [];
+					const field = args[1];
+					// copy the array to avoid mutating the original array
+					return [...arr].sort((a, b) => {
+						const aVal = parseExpression(field, a as typeof values, {}, debug);
+						const bVal = parseExpression(field, b as typeof values, {}, debug);
+						if (aVal < bVal) return -1;
+						if (aVal > bVal) return 1;
+						return 0;
+					});
+				}
 
 				// binary operators
 				const valueA = parseExpression(args[0], values, defaultValues, debug);

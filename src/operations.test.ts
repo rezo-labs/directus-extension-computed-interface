@@ -424,6 +424,90 @@ describe('Test parseExpression', () => {
       expect(parseExpression('SLICE(a, 1, 2)', { a: [1, 2, 3, 4] })).toEqual([2]);
       expect(parseExpression('SLICE(a, 1, -1)', { a: [1, 2, 3, 4] })).toEqual([2, 3]);
     });
+
+    test('MAP op', () => {
+      const arr = [
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('MAP(arr, SUM(a, 1))', { arr })).toEqual([2, 3, 4]);
+      expect(parseExpression('MAP(arr, CONCAT(b, "a"))', { arr })).toEqual(['xa', 'ya', 'za']);
+      expect(parseExpression('MAP(arr, REPT(b, a))', { arr })).toEqual(['x', 'yy', 'zzz']);
+
+      const arr2 = [
+        {
+          a: {
+            b: 1,
+          },
+          c: ['x'],
+        },
+        {
+          a: {
+            b: 2,
+          },
+          c: ['y'],
+        },
+        {
+          a: {
+            b: 3,
+          },
+          c: ['z'],
+        },
+      ];
+
+      expect(parseExpression('MAP(arr2, SUM(a.b, 1))', { arr2 })).toEqual([2, 3, 4]);
+      expect(parseExpression('MAP(arr2, CONCAT(FIRST(c), "a"))', { arr2 })).toEqual(['xa', 'ya', 'za']);
+      expect(parseExpression('MAP(arr2, REPT(FIRST(c), a.b))', { arr2 })).toEqual(['x', 'yy', 'zzz']);
+    });
+
+    test('FILTER op', () => {
+      const arr = [
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('FILTER(arr, EQUAL(a, 1))', { arr })).toEqual([arr[0]]);
+      expect(parseExpression('FILTER(arr, EQUAL(b, "y"))', { arr })).toEqual([arr[1]]);
+      expect(parseExpression('FILTER(arr, LT(a, 3))', { arr })).toEqual([arr[0], arr[1]]);
+    });
+
+    test('SORT op', () => {
+      const arr = [
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('SORT(arr, MULTIPLY(a, -1))', { arr })).toEqual([arr[2], arr[0], arr[1]]);
+      expect(parseExpression('SORT(arr, b)', { arr })).toEqual([arr[1], arr[0], arr[2]]);
+    });
   });
 
   describe('JSON ops', () => {
