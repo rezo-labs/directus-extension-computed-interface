@@ -521,6 +521,14 @@ describe('Test parseExpression', () => {
     test('JSON_STRINGIFY op', () => {
       expect(parseExpression('JSON_STRINGIFY(a)', { a: { a: 1 } })).toBe('{"a":1}');
     });
+
+    test('JSON_GET op', () => {
+      expect(parseExpression('JSON_GET(a, "a")', { a: { a: 1 } })).toBe(1);
+      expect(parseExpression('JSON_GET(a, "b")', { a: { a: 1 } })).toBe(null);
+      expect(parseExpression('JSON_GET(AT(a, 0), "b")', { a: [{ b: 2 }] })).toBe(2);
+      expect(parseExpression('JSON_GET(a, "a")', { a: 1 })).toBe(null);
+      expect(parseExpression('JSON_GET(a, "a")', { a: null })).toBe(null);
+    });
   });
 
   describe('Relational ops', () => {

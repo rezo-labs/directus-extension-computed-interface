@@ -396,6 +396,13 @@ function _parseExpression(
 					}
 					return null;
 				}
+				// json
+				if (op === 'JSON_GET') {
+					if (typeof valueA === 'object' && !Array.isArray(valueA) && valueA !== null) {
+						return findValueByPath(valueA, valueB).value;
+					}
+					return null;
+				}
 			} else if (args.length === 3) {
 				const valueA = parseExpression(args[0], values, defaultValues, debug);
 				const valueB = parseExpression(args[1], values, defaultValues, debug);
