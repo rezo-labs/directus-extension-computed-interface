@@ -103,6 +103,12 @@ describe('Test parseExpression', () => {
     test('TIME op', () => {
       expect(parseExpression('TIME($NOW)', {})).toBe(new Date().getTime());
     });
+
+    test('LOCALE_STR op', () => {
+      expect(parseExpression('LOCALE_STR($NOW, "en-US", "{}")', {})).toBe('1/1/2023, 12:00:00 AM');
+      expect(parseExpression('LOCALE_STR($NOW, "en-US", "{\\"month\\": \\"long\\"}")', {})).toBe('January');
+      expect(parseExpression('LOCALE_STR($NOW, "en-US", "{\\"weekday\\": \\"long\\", \\"year\\": \\"numeric\\", \\"month\\": \\"long\\", \\"day\\": \\"numeric\\"}")', {})).toBe('Sunday, January 1, 2023');
+    });
   });
 
   describe('Arithmetic ops', () => {
@@ -262,6 +268,26 @@ describe('Test parseExpression', () => {
       expect(parseExpression('STR_LEN(a)', { a: 1 })).toBe(1);
     });
 
+    test('LENGTH op', () => {
+      expect(parseExpression('LENGTH(a)', { a: '123' })).toBe(3);
+      expect(parseExpression('LENGTH(a)', { a: 1 })).toBe(null);
+    });
+
+    test('FIRST op', () => {
+      expect(parseExpression('FIRST(a)', { a: '123' })).toBe('1');
+      expect(parseExpression('FIRST(a)', { a: 1 })).toBe(null);
+    });
+
+    test('LAST op', () => {
+      expect(parseExpression('LAST(a)', { a: '123' })).toBe('3');
+      expect(parseExpression('LAST(a)', { a: 1 })).toBe(null);
+    });
+
+    test('REVERSE op', () => {
+      expect(parseExpression('REVERSE(a)', { a: '123' })).toBe('321');
+      expect(parseExpression('REVERSE(a)', { a: 1 })).toBe(null);
+    });
+
     test('LOWER op', () => {
       expect(parseExpression('LOWER(a)', { a: 'ABCDEF' })).toBe('abcdef');
     });
@@ -320,12 +346,189 @@ describe('Test parseExpression', () => {
       expect(parseExpression('SEARCH(a, "b", 3)', { a: 'abcabc' })).toBe(4);
       expect(parseExpression('SEARCH(a, "d")', { a: 'abcabc' })).toBe(-1);
     });
+
+    test('AT op', () => {
+      expect(parseExpression('AT(a, 1)', { a: 'abc' })).toBe('b');
+      expect(parseExpression('AT(a, 1)', { a: 1 })).toBe(null);
+    });
+
+    test('INDEX_OF op', () => {
+      expect(parseExpression('INDEX_OF(a, "b")', { a: 'abcabc' })).toBe(1);
+      expect(parseExpression('INDEX_OF(a, "c")', { a: 'abcabc' })).toBe(2);
+      expect(parseExpression('INDEX_OF(a, "d")', { a: 'abcabc' })).toBe(-1);
+      expect(parseExpression('INDEX_OF(a, "b")', { a: 1 })).toBe(null);
+    });
+
+    test('INCLUDES op', () => {
+      expect(parseExpression('INCLUDES(a, "b")', { a: 'abcabc' })).toBe(true);
+      expect(parseExpression('INCLUDES(a, "d")', { a: 'abcabc' })).toBe(false);
+      expect(parseExpression('INCLUDES(a, "b")', { a: 1 })).toBe(null);
+    });
+
+    test('SLICE op', () => {
+      expect(parseExpression('SLICE(a, 1, 2)', { a: 'abcdef' })).toBe('b');
+      expect(parseExpression('SLICE(a, 1, -1)', { a: 'abcdef' })).toBe('bcde');
+    });
   });
 
   describe('Array ops', () => {
     test('ARRAY_LEN op', () => {
       expect(parseExpression('ARRAY_LEN(a)', { a: [1, 2, 3] })).toBe(3);
       expect(parseExpression('ARRAY_LEN(a)', { a: 1 })).toBe(0);
+    });
+
+    test('LENGTH op', () => {
+      expect(parseExpression('LENGTH(a)', { a: [1, 2, 3] })).toBe(3);
+      expect(parseExpression('LENGTH(a)', { a: 1 })).toBe(null);
+    });
+
+    test('FIRST op', () => {
+      expect(parseExpression('FIRST(a)', { a: [1, 2, 3] })).toBe(1);
+      expect(parseExpression('FIRST(a)', { a: 1 })).toBe(null);
+    });
+
+    test('LAST op', () => {
+      expect(parseExpression('LAST(a)', { a: [1, 2, 3] })).toBe(3);
+      expect(parseExpression('LAST(a)', { a: 1 })).toBe(null);
+    });
+
+    test('REVERSE op', () => {
+      expect(parseExpression('REVERSE(a)', { a: [1, 2, 3] })).toEqual([3, 2, 1]);
+      expect(parseExpression('REVERSE(a)', { a: 1 })).toBe(null);
+    });
+
+    test('CONCAT op', () => {
+      expect(parseExpression('CONCAT(a, b)', { a: [1, 2], b: [3, 4] })).toEqual([1, 2, 3, 4]);
+      expect(parseExpression('CONCAT(a, b)', { a: [1, 2], b: 3 })).toEqual([1, 2, 3]);
+    });
+
+    test('AT op', () => {
+      expect(parseExpression('AT(a, 1)', { a: [1, 2, 3] })).toBe(2);
+      expect(parseExpression('AT(a, 1)', { a: 1 })).toBe(null);
+    });
+
+    test('INDEX_OF op', () => {
+      expect(parseExpression('INDEX_OF(a, 1)', { a: [1, 2, 3] })).toBe(0);
+      expect(parseExpression('INDEX_OF(a, 2)', { a: [1, 2, 3] })).toBe(1);
+      expect(parseExpression('INDEX_OF(a, 3)', { a: [1, 2, 3] })).toBe(2);
+      expect(parseExpression('INDEX_OF(a, 4)', { a: [1, 2, 3] })).toBe(-1);
+      expect(parseExpression('INDEX_OF(a, 2)', { a: 1 })).toBe(null);
+    });
+
+    test('INCLUDES op', () => {
+      expect(parseExpression('INCLUDES(a, 1)', { a: [1, 2, 3] })).toBe(true);
+      expect(parseExpression('INCLUDES(a, 4)', { a: [1, 2, 3] })).toBe(false);
+      expect(parseExpression('INCLUDES(a, 2)', { a: 1 })).toBe(null);
+    });
+
+    test('SLICE op', () => {
+      expect(parseExpression('SLICE(a, 1, 2)', { a: [1, 2, 3, 4] })).toEqual([2]);
+      expect(parseExpression('SLICE(a, 1, -1)', { a: [1, 2, 3, 4] })).toEqual([2, 3]);
+    });
+
+    test('MAP op', () => {
+      const arr = [
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('MAP(arr, SUM(a, 1))', { arr })).toEqual([2, 3, 4]);
+      expect(parseExpression('MAP(arr, CONCAT(b, "a"))', { arr })).toEqual(['xa', 'ya', 'za']);
+      expect(parseExpression('MAP(arr, REPT(b, a))', { arr })).toEqual(['x', 'yy', 'zzz']);
+
+      const arr2 = [
+        {
+          a: {
+            b: 1,
+          },
+          c: ['x'],
+        },
+        {
+          a: {
+            b: 2,
+          },
+          c: ['y'],
+        },
+        {
+          a: {
+            b: 3,
+          },
+          c: ['z'],
+        },
+      ];
+
+      expect(parseExpression('MAP(arr2, SUM(a.b, 1))', { arr2 })).toEqual([2, 3, 4]);
+      expect(parseExpression('MAP(arr2, CONCAT(FIRST(c), "a"))', { arr2 })).toEqual(['xa', 'ya', 'za']);
+      expect(parseExpression('MAP(arr2, REPT(FIRST(c), a.b))', { arr2 })).toEqual(['x', 'yy', 'zzz']);
+    });
+
+    test('FILTER op', () => {
+      const arr = [
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('FILTER(arr, EQUAL(a, 1))', { arr })).toEqual([arr[0]]);
+      expect(parseExpression('FILTER(arr, EQUAL(b, "y"))', { arr })).toEqual([arr[1]]);
+      expect(parseExpression('FILTER(arr, LT(a, 3))', { arr })).toEqual([arr[0], arr[1]]);
+    });
+
+    test('SORT op', () => {
+      const arr = [
+        {
+          a: 2,
+          b: 'y',
+        },
+        {
+          a: 1,
+          b: 'x',
+        },
+        {
+          a: 3,
+          b: 'z',
+        },
+      ];
+      expect(parseExpression('SORT(arr, MULTIPLY(a, -1))', { arr })).toEqual([arr[2], arr[0], arr[1]]);
+      expect(parseExpression('SORT(arr, b)', { arr })).toEqual([arr[1], arr[0], arr[2]]);
+    });
+  });
+
+  describe('JSON ops', () => {
+    test('JSON_PARSE op', () => {
+      expect(parseExpression('JSON_PARSE(a)', { a: '{"a": 1}' })).toStrictEqual({ a: 1 });
+      expect(parseExpression('JSON_PARSE("{\\"a\\": 1}")', {})).toStrictEqual({ a: 1 });
+      expect(parseExpression('JSON_PARSE("{\\"a\\": {\\"b\\": \\"c\\"}}")', {})).toStrictEqual({ a: { b: 'c' } });
+      expect(() => parseExpression('JSON_PARSE(a)', { a: '{"a": 1' })).toThrow(SyntaxError)
+    });
+
+    test('JSON_STRINGIFY op', () => {
+      expect(parseExpression('JSON_STRINGIFY(a)', { a: { a: 1 } })).toBe('{"a":1}');
+    });
+
+    test('JSON_GET op', () => {
+      expect(parseExpression('JSON_GET(a, "a")', { a: { a: 1 } })).toBe(1);
+      expect(parseExpression('JSON_GET(a, "b")', { a: { a: 1 } })).toBe(null);
+      expect(parseExpression('JSON_GET(AT(a, 0), "b")', { a: [{ b: 2 }] })).toBe(2);
+      expect(parseExpression('JSON_GET(a, "a")', { a: 1 })).toBe(null);
+      expect(parseExpression('JSON_GET(a, "a")', { a: null })).toBe(null);
     });
   });
 
@@ -396,6 +599,15 @@ describe('Test parseExpression', () => {
       expect(parseExpression('IFS(a, b, c, d, e, f)', { a: true, b: 1, c: true, d: 2, e: true, f: 3})).toBe(1);
       expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: true, d: 2, e: true, f: 3})).toBe(2);
       expect(parseExpression('IFS(a, b, c, d, e, f)', { a: false, b: 1, c: false, d: 2, e: true, f: 3})).toBe(3);
+    });
+  });
+
+  describe('Other ops', () => {
+    test('RANGE op', () => {
+      expect(parseExpression('RANGE(a, b, c)', { a: 1, b: 5, c: 1 })).toEqual([1, 2, 3, 4, 5]);
+      expect(parseExpression('RANGE(a, b, c)', { a: 5, b: 1, c: -1 })).toEqual([5, 4, 3, 2 ,1]);
+      expect(parseExpression('RANGE(a, b, c)', { a: 1, b: 6, c: 2 })).toEqual([1, 3, 5]);
+      expect(parseExpression('RANGE(a, b, c)', { a: 5, b: 0, c: -2 })).toEqual([5, 3, 1]);
     });
   });
 

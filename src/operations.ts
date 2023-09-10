@@ -1,4 +1,4 @@
-import { findValueByPath } from './utils';
+import { findValueByPath, isString } from './utils';
 
 export function parseExpression(
 	exp: string,
@@ -197,6 +197,41 @@ function _parseExpression(
 					}
 					return 0;
 				}
+				// array and string
+				if (op === 'LENGTH') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA.length;
+					}
+					return null;
+				}
+				if (op === 'FIRST') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA[0];
+					}
+					return null;
+				}
+				if (op === 'LAST') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA[valueA.length - 1];
+					}
+					return null;
+				}
+				if (op === 'REVERSE') {
+					if (valueA instanceof Array) {
+						return valueA.reverse();
+					}
+					if (isString(valueA)) {
+						return valueA.split('').reverse().join('');
+					}
+					return null;
+				}
+				// json
+				if (op === 'JSON_PARSE') {
+					return JSON.parse(valueA);
+				}
+				if (op === 'JSON_STRINGIFY') {
+					return JSON.stringify(valueA);
+				}
 			} else if (args.length === 2) {
 				// aggregated operators
 				if (op === 'ASUM') {
@@ -232,6 +267,28 @@ function _parseExpression(
 					// aggregated count
 					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (parseExpression(args[1], item as typeof values, {}, debug) ? 1 : 0), 0) ?? 0;
 				}
+				// loop operators
+				if (op === 'MAP') {
+					// map
+					return (values[args[0]] as unknown[])?.map((item) => parseExpression(args[1], item as typeof values, {}, debug)) ?? [];
+				}
+				if (op === 'FILTER') {
+					// filter
+					return (values[args[0]] as unknown[])?.filter((item) => parseExpression(args[1], item as typeof values, {}, debug)) ?? [];
+				}
+				if (op === 'SORT') {
+					// sort
+					const arr = (values[args[0]] as unknown[]) ?? [];
+					const field = args[1];
+					// copy the array to avoid mutating the original array
+					return [...arr].sort((a, b) => {
+						const aVal = parseExpression(field, a as typeof values, {}, debug);
+						const bVal = parseExpression(field, b as typeof values, {}, debug);
+						if (aVal < bVal) return -1;
+						if (aVal > bVal) return 1;
+						return 0;
+					});
+				}
 
 				// binary operators
 				const valueA = parseExpression(args[0], values, defaultValues, debug);
@@ -266,9 +323,6 @@ function _parseExpression(
 					return Math.pow(valueA, valueB);
 				}
 				// string
-				if (op === 'CONCAT') {
-					return String(valueA) + String(valueB);
-				}
 				if (op === 'LEFT') {
 					return String(valueA).slice(0, Number(valueB));
 				}
@@ -317,30 +371,104 @@ function _parseExpression(
 				if (op === 'OR') {
 					return valueA || valueB;
 				}
-			} else if (args.length === 3) {
-				if (op === 'IF') {
-					if (parseExpression(args[0], values, defaultValues, debug) === true) {
-						return parseExpression(args[1], values, defaultValues, debug);
+				// array and string
+				if (op === 'CONCAT') {
+					if (valueA instanceof Array) {
+						return valueA.concat(valueB);
 					}
-					return parseExpression(args[2], values, defaultValues, debug);
+					return String(valueA) + String(valueB);
+				}
+				if (op === 'AT') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA[Number(valueB)];
+					}
+					return null;
+				}
+				if (op === 'INDEX_OF') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA.indexOf(valueB);
+					}
+					return null;
+				}
+				if (op === 'INCLUDES') {
+					if (valueA instanceof Array || isString(valueA)) {
+						return valueA.includes(valueB);
+					}
+					return null;
+				}
+				// json
+				if (op === 'JSON_GET') {
+					if (typeof valueA === 'object' && !Array.isArray(valueA) && valueA !== null) {
+						return findValueByPath(valueA, valueB).value;
+					}
+					return null;
+				}
+			} else if (args.length === 3) {
+				const valueA = parseExpression(args[0], values, defaultValues, debug);
+				const valueB = parseExpression(args[1], values, defaultValues, debug);
+				const valueC = parseExpression(args[2], values, defaultValues, debug);
+
+				if (op === 'IF') {
+					if (valueA === true) {
+						return valueB;
+					}
+					return valueC;
 				}
 				if (op === 'MID') {
-					const str = String(parseExpression(args[0], values, defaultValues, debug));
-					const startAt = Number(parseExpression(args[1], values, defaultValues, debug));
-					const count = Number(parseExpression(args[2], values, defaultValues, debug));
+					const str = String(valueA);
+					const startAt = Number(valueB);
+					const count = Number(valueC);
 					return str.slice(startAt, startAt + count);
 				}
 				if (op === 'SUBSTITUTE') {
-					const str = String(parseExpression(args[0], values, defaultValues, debug));
-					const old = String(parseExpression(args[1], values, defaultValues, debug));
-					const newStr = String(parseExpression(args[2], values, defaultValues, debug));
+					const str = String(valueA);
+					const old = String(valueB);
+					const newStr = String(valueC);
 					return str.split(old).join(newStr);
 				}
 				if (op === 'SEARCH') {
-					const str = String(parseExpression(args[0], values, defaultValues, debug));
-					const find = String(parseExpression(args[1], values, defaultValues, debug));
-					const startAt = Number(parseExpression(args[2], values, defaultValues, debug));
+					const str = String(valueA);
+					const find = String(valueB);
+					const startAt = Number(valueC);
 					return str.indexOf(find, startAt);
+				}
+				if (op === 'LOCALE_STR') {
+					const date = new Date(valueA);
+					const locale = String(valueB);
+					let options = {};
+					try {
+						options = JSON.parse(valueC);
+					} catch (e) {
+						// ignore
+					}
+					return date.toLocaleString(locale, options);
+				}
+				if (op === 'RANGE') {
+					// RANGE(start, end, step
+					// RANGE(1, 10, 2) => [1, 3, 5, 7, 9]
+					// RANGE(10, 1, -2) => [10, 8, 6, 4, 2]
+					const start = Number(valueA);
+					const end = Number(valueB);
+					const step = Number(valueC);
+					const arr = [];
+					if (step > 0) {
+						for (let i = start; i <= end; i += step) {
+							arr.push(i);
+						}
+					} else if (step < 0) {
+						for (let i = start; i >= end; i += step) {
+							arr.push(i);
+						}
+					}
+					return arr;
+				}
+				if (op === 'SLICE') {
+					if (valueA instanceof Array || isString(valueA)) {
+						const start = Number(valueB);
+						const end = Number(valueC);
+						return valueA.slice(start, end);
+					}
+					return null;
 				}
 			} else if (args.length % 2 === 0) {
 				if (op === 'IFS') {

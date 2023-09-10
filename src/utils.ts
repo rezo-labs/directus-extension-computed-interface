@@ -219,3 +219,7 @@ export const findValueByPath = (obj: Record<string, any>, path: string) => {
 	}
 	return { value, found: true };
 };
+
+export function isString(value: unknown): value is string {
+	return typeof value === 'string' || value instanceof String;
+}
