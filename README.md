@@ -26,7 +26,7 @@ npm i directus-extension-computed-interface
         - **Read Only**: Show an input with the computed value and disallow manual editing.
     3. **Prefix**: a string to prefix the computed value.
     4. **Suffix**: a string to suffix the computed value.
-    5. **Custom CSS**: an object for inline style binding. Only works with **Display Only** and **Read Only** mode. You can use this option to customize the appearance of the computed value such as font size, color, etc.
+    5. **Custom CSS**: a JSON object for inline style binding. Only works with **Display Only** and **Read Only** mode. You can use this option to customize the appearance of the computed value such as font size, color, etc. Example: `{"color": "red", "font-size": "20px"}`.
     6. **Debug Mode**: Used for debugging the template. It will show an error message if the template is invalid. It will also log to console the result of each component of the template.
     7. **Compute If Empty**: Compute the value if the field is empty. This is useful if you want a value to be computed once such as the created date or a unique ID.
     8. **Initial Compute**: Compute the value when opening the form. This is useful if you want to compute a value based on the current date or other dynamic values.
@@ -68,6 +68,19 @@ Literal strings are enclosed by double quotes (`"`):
 {{ CONCAT(file, ".txt") }}
 ```
 
+Use `.` to access nested fields in M2O or M2M fields:
+```
+{{ CONCAT(CONCAT(user.first_name, " "), user.last_name) }}
+```
+
+Combine `AT`, `FIRST`, `LAST`, `JSON_GET` to access nested fields in O2M or JSON fields:
+```
+{{ JSON_GET(AT(products, 0), "name") }}
+{{ JSON_GET(LAST(products), "price") }}
+```
+
+**Note**: For M2O, O2M, M2M fields, you can only access the fields of the direct relation. For example, if you have a `user` field that is a M2O relation to the `users` collection, you can only access the fields of the `users` collection. You cannot access the fields of the `roles` collection even though the `users` collection has a M2O relation to the `roles` collection. On the other hand, JSON fields have no such limitation!
+
 ## Available operators
 
 ### Type conversion
@@ -102,6 +115,7 @@ Operator | Description
 `MINUTES(a)` | get minutes of a date object, similar to `getMinutes`
 `SECONDS(a)` | get seconds of a date object, similar to `getSeconds`
 `TIME(a)` | get time of a date object, similar to `getTime`
+`LOCALE_STR(a, locale, options)` | transform date or date-like object to string with locale format, `options` is a stringified JSON object. Example: `LOCALE_STR("2023-01-01", "en-US", "{\"weekday\": \"long\", \"year\": \"numeric\", \"month\": \"long\", \"day\": \"numeric\"}")` returns "Sunday, January 1, 2023".
 
 ### Arithmetic
 
@@ -132,7 +146,11 @@ Operator | Description
 
 Operator | Description
 --- | ---
-`STR_LEN(str)` | length of string
+`STR_LEN(str)` | length of string (deprecated, use `LENGTH` instead)
+`LENGTH(str)` | length of string
+`FIRST(str)` | first character of string
+`LAST(str)` | last character of string
+`REVERSE(str)` | reverse string
 `LOWER(str)` | to lower case
 `UPPER(str)` | to upper case
 `TRIM(str)` | removes whitespace at the beginning and end of string.
@@ -147,6 +165,10 @@ Operator | Description
 `SEARCH(str, keyword)` | search `keyword` in `str` and return the position of the first occurrence. Return -1 if not found.
 `SEARCH(str, keyword, startAt)` | search `keyword` in `str` and return the position of the first occurrence after `startAt`. Return -1 if not found.
 `SUBSTITUTE(str, old, new)` | replace all occurrences of `old` in `str` with `new`.
+`AT(str, index)` | get character at `index` of `str`.
+`INDEX_OF(str, keyword)` | get the position of the first occurrence of `keyword` in `str`. Return -1 if not found.
+`INCLUDES(str, keyword)` | check if `str` contains `keyword`.
+`SLICE(str, startAt, endAt)` | extract a part of `str` from `startAt` to `endAt`. `endAt` can be negative. Similar to `slice` method of `String`.
 
 ### Boolean
 
@@ -168,7 +190,27 @@ Operator | Description
 
 Operator | Description
 --- | ---
-`ARRAY_LEN(a)` | length of array
+`ARRAY_LEN(a)` | length of array (deprecated, use `LENGTH` instead)
+`LENGTH(a)` | length of array
+`FIRST(a)` | first element of array
+`LAST(a)` | last element of array
+`REVERSE(a)` | reverse array
+`CONCAT(a, b)` | concat 2 arrays `a` and `b`.
+`AT(a, index)` | get element at `index` of `a`.
+`INDEX_OF(a, element)` | get the position of the first occurrence of `element` in `a`. Return -1 if not found.
+`INCLUDES(a, element)` | check if `a` contains `element`.
+`SLICE(a, startAt, endAt)` | extract a part of `a` from `startAt` to `endAt`. `endAt` can be negative. Similar to `slice` method of `Array`.
+`MAP(a, expression)` | apply `expression` to each element of `a` and return a new array, each element of `a` must be an object. Example: `MAP(products, MULTIPLY(price, quantity))` returns an array of total price of each product.
+`FILTER(a, expression)` | filter `a` with `expression` and return a new array, each element of `a` must be an object. Example: `FILTER(products, GT(stock, 0))` returns an array of products that are in stock.
+`SORT(a, expression)` | sort `a` with `expression` and return a new array, each element of `a` must be an object. Example: `SORT(products, price)` returns an array of products sorted by price.
+
+### JSON
+
+Operator | Description
+--- | ---
+`JSON_GET(a, key)` | get value of `key` in JSON object `a`.
+`JSON_PARSE(a)` | parse string `a` to JSON object.
+`JSON_STRINGIFY(a)` | stringify JSON object `a`.
 
 ### Relational
 
@@ -189,6 +231,12 @@ Operator | Description
 --- | ---
 `IF(A, B, C)` | return `B` if `A` is `true`, otherwise `C`
 `IFS(A1, B1, A2, B2, ..., An, Bn)` | return `Bi` if `Ai` is the first to be `true`, if none of `Ai` is `true`, return `null`
+
+### Others
+
+Operator | Description
+--- | ---
+`RANGE(start, end, step)` | create an array of numbers from `start` to `end` with `step` increment/decrement. Example: `RANGE(1, 10, 2)` returns `[1, 3, 5, 7, 9]`.
 
 ## Dynamic Variables
 

@@ -107,6 +107,7 @@ describe('Test parseExpression', () => {
     test('LOCALE_STR op', () => {
       expect(parseExpression('LOCALE_STR($NOW, "en-US", "{}")', {})).toBe('1/1/2023, 12:00:00 AM');
       expect(parseExpression('LOCALE_STR($NOW, "en-US", "{\\"month\\": \\"long\\"}")', {})).toBe('January');
+      expect(parseExpression('LOCALE_STR($NOW, "en-US", "{\\"weekday\\": \\"long\\", \\"year\\": \\"numeric\\", \\"month\\": \\"long\\", \\"day\\": \\"numeric\\"}")', {})).toBe('Sunday, January 1, 2023');
     });
   });
 
