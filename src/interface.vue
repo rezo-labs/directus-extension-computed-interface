@@ -11,7 +11,7 @@
 		:collection="collection"
 		:primary-key="primaryKey"
 		:model-value="value"
-		@update:model-value="$emit('input', $event)"
+		@update:model-value="onInput"
 	/>
 	<v-notice v-if="errorMsg" type="danger">{{ errorMsg }}</v-notice>
 </template>
@@ -83,6 +83,7 @@ export default defineComponent({
 		const computedValue = ref<string | number | null>(props.value);
 		const relations = useCollectionRelations(props.collection);
 		const { collection, field, primaryKey } = toRefs(props)
+		const isComputedEditing = ref(true);
 
 		const values = useDeepValues(
 			inject<ComputedRef<Record<string, any>>>('values')!,
@@ -96,6 +97,11 @@ export default defineComponent({
 
 		if (values) {
 			watch(values, () => {
+				if (isComputedEditing.value) {
+					isComputedEditing.value = false
+					return
+				}
+
 				const newValue = compute();
 				computedValue.value = newValue;
 
@@ -116,6 +122,7 @@ export default defineComponent({
 		return {
 			computedValue,
 			errorMsg,
+			onInput,
 		};
 
 		function compute() {
@@ -138,6 +145,11 @@ export default defineComponent({
 				errorMsg.value = err.message ?? 'Unknown error';
 				return null;
 			}
+		}
+
+		function onInput(value: string) {
+			isComputedEditing.value = true;
+			emit('input', value);
 		}
 	},
 });
