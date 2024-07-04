@@ -542,10 +542,32 @@ export function toSlug(str: unknown) {
 	res = res.toLowerCase();
 
 	// remove accents
-	const from = 'àáãảạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệđùúủũụưừứửữựòóỏõọôồốổỗộơờớởỡợìíỉĩịäëïîöüûñçýỳỹỵỷ';
-	const to = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeduuuuuuuuuuuoooooooooooooooooiiiiiaeiiouuncyyyyy';
-	for (let i = 0, l = from.length; i < l; i++) {
-		res = res.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+	const asciiMap: Record<string, string> = {
+		"æ": "ae", "œ": "oe", "à": "a", "á": "a", "â": "a", "ã": "a", "å": "a",
+		"ç": "c", "è": "e", "é": "e", "ê": "e", "ì": "i", "í": "i", "î": "i",
+		"ð": "d", "ñ": "n", "ò": "o", "ó": "o", "ô": "o", "õ": "o", "ø": "o",
+		"ù": "u", "ú": "u", "ý": "y", "þ": "th", "ß": "ss", "ä": "e", "ë": "i",
+		"ï": "i", "ö": "u", "ü": "u", "ÿ": "y", "ś": "s", "ń": "n", "ć": "c",
+		"ź": "z", "ł": "l", "ż": "z", "ả": "a", "ạ": "a", "ă": "a", "ằ": "a",
+		"ắ": "a", "ẳ": "a", "ẵ": "a", "ặ": "a", "ầ": "a", "ấ": "a", "ẩ": "a",
+		"ẫ": "a", "ậ": "e", "ẻ": "e", "ẽ": "e", "ẹ": "e", "ề": "e", "ế": "e",
+		"ể": "e", "ễ": "e", "ệ": "d", "đ": "d", "ủ": "u", "ũ": "u", "ụ": "u",
+		"ư": "u", "ừ": "u", "ứ": "u", "ử": "u", "ữ": "u", "ự": "u", "ỏ": "o",
+		"ọ": "o", "ồ": "o", "ố": "o", "ổ": "o", "ỗ": "o", "ộ": "o", "ơ": "o",
+		"ờ": "o", "ớ": "o", "ở": "o", "ỡ": "o", "ợ": "o", "ỉ": "i", "ĩ": "i",
+		"ị": "i", "ỳ": "y", "ỹ": "y", "ỵ": "y"
+	};
+
+	let index = 0;
+
+	while (index < str.length) {
+		const char = str.charAt(index);
+
+		if (char in asciiMap) {
+			res = res.replace(new RegExp(char, 'g'), asciiMap[char]);
+		}
+
+		index++;
 	}
 
 	res = res
