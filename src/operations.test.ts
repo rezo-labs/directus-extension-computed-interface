@@ -538,9 +538,35 @@ describe('Test parseExpression', () => {
       expect(parseExpression('ASUM(a, MULTIPLY(b, c))', { a: [{b: 5, c: 1}, {b: 10, c: 2}, {b: 1000, c: 0}, {b: 15, c: 10}] })).toBe(175);
     });
 
+    test('ASUM op with string quantities (fix NaN issue)', () => {
+      // Test case: 2 schedules with string quantities "2" and "3" should sum to 5
+      expect(parseExpression('ASUM(a, b)', { a: [{b: "2"}, {b: "3"}] })).toBe(5);
+      
+      // Test case: Mixed string and number quantities
+      expect(parseExpression('ASUM(a, b)', { a: [{b: "2"}, {b: 3}, {b: "4"}] })).toBe(9);
+      
+      // Test case: Missing/undefined quantities should not cause NaN
+      expect(parseExpression('ASUM(a, b)', { a: [{b: "2"}, {b: undefined}, {b: "3"}] })).toBe(5);
+      expect(parseExpression('ASUM(a, b)', { a: [{b: null}, {b: "5"}] })).toBe(5);
+      expect(parseExpression('ASUM(a, b)', { a: [{b: undefined}] })).toBe(0);
+    });
+
     test('AMIN op', () => {
       expect(parseExpression('AMIN(a, b)', { a: [{b: 5}, {b: 10}, {b: -5}, {b: 15}] })).toBe(-5);
       expect(parseExpression('AMIN(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(-15);
+    });
+
+    test('AMIN op with string quantities (fix NaN issue)', () => {
+      // Test case: string quantities should be handled gracefully
+      expect(parseExpression('AMIN(a, b)', { a: [{b: "5"}, {b: "3"}, {b: "10"}] })).toBe(3);
+      
+      // Test case: Mixed string and number quantities
+      expect(parseExpression('AMIN(a, b)', { a: [{b: "5"}, {b: 3}, {b: "10"}] })).toBe(3);
+      
+      // Test case: Missing/undefined quantities should not cause NaN
+      expect(parseExpression('AMIN(a, b)', { a: [{b: "5"}, {b: undefined}, {b: "10"}] })).toBe(0);
+      expect(parseExpression('AMIN(a, b)', { a: [{b: null}, {b: "5"}] })).toBe(0);
+      expect(parseExpression('AMIN(a, b)', { a: [{b: undefined}] })).toBe(0);
     });
 
     test('AMAX op', () => {
@@ -548,14 +574,53 @@ describe('Test parseExpression', () => {
       expect(parseExpression('AMAX(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(10);
     });
 
+    test('AMAX op with string quantities (fix NaN issue)', () => {
+      // Test case: string quantities should be handled gracefully
+      expect(parseExpression('AMAX(a, b)', { a: [{b: "5"}, {b: "3"}, {b: "10"}] })).toBe(10);
+      
+      // Test case: Mixed string and number quantities
+      expect(parseExpression('AMAX(a, b)', { a: [{b: "5"}, {b: 3}, {b: "10"}] })).toBe(10);
+      
+      // Test case: Missing/undefined quantities should not cause NaN
+      expect(parseExpression('AMAX(a, b)', { a: [{b: "5"}, {b: undefined}, {b: "10"}] })).toBe(10);
+      expect(parseExpression('AMAX(a, b)', { a: [{b: null}, {b: "5"}] })).toBe(5);
+      expect(parseExpression('AMAX(a, b)', { a: [{b: undefined}] })).toBe(0);
+    });
+
     test('AAVG op', () => {
       expect(parseExpression('AAVG(a, b)', { a: [{b: 5}, {b: 10}, {b: 0}, {b: 15}] })).toBe(7.5);
       expect(parseExpression('AAVG(a, SUM(b, c))', { a: [{b: 5, c: -5}, {b: 10, c: 0}, {b: -5, c: 5}, {b: 15, c: -30}] })).toBe(-1.25);
     });
 
+    test('AAVG op with string quantities (fix NaN issue)', () => {
+      // Test case: string quantities should be handled gracefully
+      expect(parseExpression('AAVG(a, b)', { a: [{b: "5"}, {b: "3"}, {b: "10"}] })).toBe(6);
+      
+      // Test case: Mixed string and number quantities
+      expect(parseExpression('AAVG(a, b)', { a: [{b: "5"}, {b: 3}, {b: "10"}] })).toBe(6);
+      
+      // Test case: Missing/undefined quantities should not cause NaN
+      expect(parseExpression('AAVG(a, b)', { a: [{b: "5"}, {b: undefined}, {b: "10"}] })).toBe(7.5);
+      expect(parseExpression('AAVG(a, b)', { a: [{b: null}, {b: "5"}] })).toBe(2.5);
+      expect(parseExpression('AAVG(a, b)', { a: [{b: undefined}] })).toBe(0);
+    });
+
     test('AMUL op', () => {
       expect(parseExpression('AMUL(a, b)', { a: [{b: 5}, {b: 10}, {b: 1}, {b: 15}] })).toBe(750);
       expect(parseExpression('AMUL(a, SUM(b, c))', { a: [{b: 10, c: 0}, {b: 15, c: -30}] })).toBe(-150);
+    });
+
+    test('AMUL op with string quantities (fix NaN issue)', () => {
+      // Test case: string quantities should be handled gracefully
+      expect(parseExpression('AMUL(a, b)', { a: [{b: "5"}, {b: "2"}, {b: "3"}] })).toBe(30);
+      
+      // Test case: Mixed string and number quantities
+      expect(parseExpression('AMUL(a, b)', { a: [{b: "5"}, {b: 2}, {b: "3"}] })).toBe(30);
+      
+      // Test case: Missing/undefined quantities should not cause NaN
+      expect(parseExpression('AMUL(a, b)', { a: [{b: "5"}, {b: undefined}, {b: "3"}] })).toBe(0);
+      expect(parseExpression('AMUL(a, b)', { a: [{b: null}, {b: "5"}] })).toBe(0);
+      expect(parseExpression('AMUL(a, b)', { a: [{b: undefined}] })).toBe(0);
     });
 
     test('AAND op', () => {
@@ -800,4 +865,78 @@ A thousand generations live in you now.`))
     expect(toSlug(new Date())).toBe('');
     expect(toSlug(new RegExp('123'))).toBe('');
   });
+describe('NaN prevention tests', () => {
+  test('SUM binary op with string values', () => {
+    // Test that string values from Directus are properly converted to numbers
+    expect(parseExpression('SUM(a, b)', { a: "5", b: "3" })).toBe(8);
+    expect(parseExpression('SUM(a, b)', { a: "5", b: undefined })).toBe(5);
+    expect(parseExpression('SUM(a, b)', { a: null, b: "3" })).toBe(3);
+    expect(parseExpression('SUM(a, b)', { a: undefined, b: undefined })).toBe(0);
+  });
+
+  test('SUBTRACT binary op with string values', () => {
+    expect(parseExpression('SUBTRACT(a, b)', { a: "10", b: "3" })).toBe(7);
+    expect(parseExpression('SUBTRACT(a, b)', { a: "10", b: undefined })).toBe(10);
+    expect(parseExpression('SUBTRACT(a, b)', { a: null, b: "3" })).toBe(-3);
+  });
+
+  test('MULTIPLY binary op with string values', () => {
+    expect(parseExpression('MULTIPLY(a, b)', { a: "5", b: "3" })).toBe(15);
+    expect(parseExpression('MULTIPLY(a, b)', { a: "5", b: undefined })).toBe(0);
+  });
+
+  test('DIVIDE binary op with string values', () => {
+    expect(parseExpression('DIVIDE(a, b)', { a: "15", b: "3" })).toBe(5);
+    expect(parseExpression('DIVIDE(a, b)', { a: "15", b: undefined })).toBe(Infinity);
+  });
+
+  test('ABS unary op with string values', () => {
+    expect(parseExpression('ABS(a)', { a: "-5" })).toBe(5);
+    expect(parseExpression('ABS(a)', { a: undefined })).toBe(0);
+    expect(parseExpression('ABS(a)', { a: null })).toBe(0);
+  });
+
+  test('SQRT unary op with string values', () => {
+    expect(parseExpression('SQRT(a)', { a: "16" })).toBe(4);
+    expect(parseExpression('SQRT(a)', { a: undefined })).toBe(0);
+  });
+
+  test('SUM unary op with array containing strings', () => {
+    expect(parseExpression('SUM(a)', { a: ["1", "2", "3"] })).toBe(6);
+    expect(parseExpression('SUM(a)', { a: ["1", undefined, "3"] })).toBe(4);
+    expect(parseExpression('SUM(a)', { a: [null, "2", null] })).toBe(2);
+  });
+
+  test('AVERAGE unary op with array containing strings', () => {
+    expect(parseExpression('AVERAGE(a)', { a: ["2", "4", "6"] })).toBe(4);
+    expect(parseExpression('AVERAGE(a)', { a: ["2", undefined, "6"] })).toBe(4);
+  });
+
+  test('MAX unary op with array containing strings', () => {
+    expect(parseExpression('MAX(a)', { a: ["1", "5", "3"] })).toBe(5);
+    expect(parseExpression('MAX(a)', { a: ["1", undefined, "5"] })).toBe(5);
+    expect(parseExpression('MAX(a)', { a: [null, null, null] })).toBe(0);
+  });
+
+  test('MIN unary op with array containing strings', () => {
+    expect(parseExpression('MIN(a)', { a: ["1", "5", "3"] })).toBe(1);
+    expect(parseExpression('MIN(a)', { a: ["1", undefined, "5"] })).toBe(1);
+    expect(parseExpression('MIN(a)', { a: [null, null, null] })).toBe(0);
+  });
+
+  test('CEIL unary op with string values', () => {
+    expect(parseExpression('CEIL(a)', { a: "1.234" })).toBe(2);
+    expect(parseExpression('CEIL(a)', { a: undefined })).toBe(0);
+  });
+
+  test('FLOOR unary op with string values', () => {
+    expect(parseExpression('FLOOR(a)', { a: "1.234" })).toBe(1);
+    expect(parseExpression('FLOOR(a)', { a: undefined })).toBe(0);
+  });
+
+  test('ROUND unary op with string values', () => {
+    expect(parseExpression('ROUND(a)', { a: "1.234" })).toBe(1);
+    expect(parseExpression('ROUND(a)', { a: undefined })).toBe(0);
+  });
+});
 });
