@@ -236,7 +236,7 @@ function _parseExpression(
 				// aggregated operators
 				if (op === 'ASUM') {
 					// aggregated sum
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}, debug), 0) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (+parseExpression(args[1], item as typeof values, {}, debug) || 0), 0) ?? 0;
 				}
 				if (op === 'AMIN') {
 					// aggregated min
