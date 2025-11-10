@@ -54,7 +54,7 @@ function _parseExpression(
 
 		const opMatch = parseOp(exp);
 		if (opMatch) {
-			const { op, args } = opMatch;
+			 const { op, args } = opMatch as { op: string; args: [string, string, string, ...string[]] };
 
 			// unary operators
 			if (args.length === 1) {
@@ -104,7 +104,7 @@ function _parseExpression(
 				}
 				if (['YEAR', 'MONTH', 'GET_DATE', 'DAY', 'HOURS', 'MINUTES', 'SECONDS', 'TIME'].includes(op)) {
 					if (valueA instanceof Date) {
-						const op2func = {
+						const op2func: any = {
 							YEAR: 'getFullYear',
 							MONTH: 'getMonth',
 							GET_DATE: 'getDate',
@@ -114,53 +114,53 @@ function _parseExpression(
 							SECONDS: 'getSeconds',
 							TIME: 'getTime',
 						};
-						return valueA[op2func[op]]();
+						return (valueA as any)[op2func[op]]();
 					}
 					return 0;
 				}
 				// arithmetic
 				if (op === 'ABS') {
-					return Math.abs(valueA);
+					return Math.abs(+valueA || 0);
 				}
 				if (op === 'SQRT') {
-					return Math.sqrt(valueA);
+					return Math.sqrt(+valueA || 0);
 				}
 				if (op === 'SUM') {
 					if (valueA instanceof Array) {
-						return valueA.reduce((partialSum, a) => partialSum + a, 0);
+						return valueA.reduce((partialSum: number, a: any) => partialSum + (+a || 0), 0);
 					}
 					return 0;
 				}
 				if (op === 'AVERAGE') {
 					if (valueA instanceof Array) {
-						return valueA.reduce((partialSum, a) => partialSum + a, 0) / valueA.length;
+						return valueA.reduce((partialSum: number, a: any) => partialSum + (+a || 0), 0) / valueA.length;
 					}
 					return 0;
 				}
 				if (op === 'CEIL') {
-					return Math.ceil(valueA);
+					return Math.ceil(+valueA || 0);
 				}
 				if (op === 'FLOOR') {
-					return Math.floor(valueA);
+					return Math.floor(+valueA || 0);
 				}
 				if (op === 'ROUND') {
-					return Math.round(valueA);
+					return Math.round(+valueA || 0);
 				}
 				if (op === 'EXP') {
-					return Math.exp(valueA);
+					return Math.exp(+valueA || 0);
 				}
 				if (op === 'LOG') {
-					return Math.log(valueA);
+					return Math.log(+valueA || 0);
 				}
 				if (op === 'MAX') {
 					if (valueA instanceof Array) {
-						return Math.max(...valueA);
+						return Math.max(...valueA.map(v => +v || 0));
 					}
 					return 0;
 				}
 				if (op === 'MIN') {
 					if (valueA instanceof Array) {
-						return Math.min(...valueA);
+						return Math.min(...valueA.map(v => +v || 0));
 					}
 					return 0;
 				}
@@ -236,36 +236,36 @@ function _parseExpression(
 				// aggregated operators
 				if (op === 'ASUM') {
 					// aggregated sum
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (+parseExpression(args[1], item as typeof values, {}, debug) || 0), 0) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc: number, item) => acc + (+parseExpression(args[1], item as typeof values, {}, debug) || 0), 0) ?? 0;
 				}
 				if (op === 'AMIN') {
 					// aggregated min
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => Math.min(acc, parseExpression(args[1], item as typeof values, {}, debug)), Infinity) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc: number, item) => Math.min(acc, (+parseExpression(args[1], item as typeof values, {}, debug) || 0)), Infinity) ?? 0;
 				}
 				if (op === 'AMAX') {
 					// aggregated max
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => Math.max(acc, parseExpression(args[1], item as typeof values, {}, debug)), -Infinity) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc: number, item) => Math.max(acc, (+parseExpression(args[1], item as typeof values, {}, debug) || 0)), -Infinity) ?? 0;
 				}
 				if (op === 'AAVG') {
 					// aggregated average
 					const arr = (values[args[0]] as unknown[]) ?? [];
-					return arr.reduce((acc, item) => acc + parseExpression(args[1], item as typeof values, {}, debug), 0) / arr.length;
+					return arr.reduce((acc: number, item) => acc + (+parseExpression(args[1], item as typeof values, {}, debug) || 0), 0) / arr.length;
 				}
 				if (op === 'AMUL') {
 					// aggregated multiplication
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc * parseExpression(args[1], item as typeof values, {}, debug), 1) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc: number, item) => acc * (+parseExpression(args[1], item as typeof values, {}, debug) || 0), 1) ?? 0;
 				}
 				if (op === 'AAND') {
 					// aggregated and
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc && parseExpression(args[1], item as typeof values, {}, debug), true) ?? false;
+					return (values[args[0]] as unknown[])?.reduce((acc: boolean, item) => acc && parseExpression(args[1], item as typeof values, {}, debug), true) ?? false;
 				}
 				if (op === 'AOR') {
 					// aggregated or
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc || parseExpression(args[1], item as typeof values, {}, debug), false) ?? false;
+					return (values[args[0]] as unknown[])?.reduce((acc: boolean, item) => acc || parseExpression(args[1], item as typeof values, {}, debug), false) ?? false;
 				}
 				if (op === 'ACOUNT') {
 					// aggregated count
-					return (values[args[0]] as unknown[])?.reduce((acc, item) => acc + (parseExpression(args[1], item as typeof values, {}, debug) ? 1 : 0), 0) ?? 0;
+					return (values[args[0]] as unknown[])?.reduce((acc: number, item) => acc + (parseExpression(args[1], item as typeof values, {}, debug) ? 1 : 0), 0) ?? 0;
 				}
 				// loop operators
 				if (op === 'MAP') {
@@ -296,31 +296,31 @@ function _parseExpression(
 
 				// arithmetic
 				if (op === 'SUM') {
-					return valueA + valueB;
+					return (+valueA || 0) + (+valueB || 0);
 				}
 				if (op === 'SUBTRACT') {
-					return valueA - valueB;
+					return (+valueA || 0) - (+valueB || 0);
 				}
 				if (op === 'MULTIPLY') {
-					return valueA * valueB;
+					return (+valueA || 0) * (+valueB || 0);
 				}
 				if (op === 'DIVIDE') {
-					return valueA / valueB;
+					return (+valueA || 0) / (+valueB || 0);
 				}
 				if (op === 'REMAINDER') {
-					return valueA % valueB;
+					return (+valueA || 0) % (+valueB || 0);
 				}
 				if (op === 'ROUND') {
-					return (valueA as number).toFixed(valueB);
+					return ((+valueA || 0) as number).toFixed(+valueB || 0);
 				}
 				if (op === 'MAX') {
-					return Math.max(valueA, valueB);
+					return Math.max(+valueA || 0, +valueB || 0);
 				}
 				if (op === 'MIN') {
-					return Math.min(valueA, valueB);
+					return Math.min(+valueA || 0, +valueB || 0);
 				}
 				if (op === 'POWER') {
-					return Math.pow(valueA, valueB);
+					return Math.pow(+valueA || 0, +valueB || 0);
 				}
 				// string
 				if (op === 'LEFT') {
@@ -473,8 +473,8 @@ function _parseExpression(
 			} else if (args.length % 2 === 0) {
 				if (op === 'IFS') {
 					for (let i = 0; i < args.length; i += 2) {
-						if (parseExpression(args[i], values, defaultValues, debug) === true) {
-							return parseExpression(args[i + 1], values, defaultValues, debug);
+						if (parseExpression(args[i]!, values, defaultValues, debug) === true) {
+							return parseExpression(args[i + 1]!, values, defaultValues, debug);
 						}
 					}
 					return null;
